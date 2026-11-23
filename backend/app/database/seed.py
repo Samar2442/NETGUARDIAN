@@ -9,6 +9,22 @@ from app.models import (
 from app.core.security import get_password_hash
 
 def seed_database(db=None):
+    import os, secrets
+    from app.core.config import settings
+
+    def resolve_password(env_var: str, role_desc: str) -> str:
+        """Return a hashed password.
+        In DEMO mode a random password is generated when the env var is absent.
+        In production the env var is mandatory – missing results in a clear error.
+        """
+        raw = os.getenv(env_var)
+        if raw:
+            return get_password_hash(raw)
+        if settings.DEMO_MODE:
+            # generate a temporary random password for local dev; do NOT log it
+            generated = secrets.token_urlsafe(12)
+            return get_password_hash(generated)
+        raise RuntimeError(f"Missing required environment variable {env_var} for {role_desc} user creation")
     close_at_end = False
     if db is None:
         Base.metadata.create_all(bind=engine)
@@ -26,21 +42,21 @@ def seed_database(db=None):
             User(
                 username="admin",
                 email="admin@netguardian.saturnx.local",
-                hashed_password=get_password_hash("NetGuardianAdmin2026!"),
+                hashed_password=resolve_password("ADMIN_PASSWORD", "admin"),
                 role="admin",
                 is_active=True
             ),
             User(
                 username="neteng",
                 email="engineer@netguardian.saturnx.local",
-                hashed_password=get_password_hash("CiscoEngineer2026!"),
+                hashed_password=resolve_password("ENGINEER_PASSWORD", "network_engineer"),
                 role="network_engineer",
                 is_active=True
             ),
             User(
                 username="auditor",
                 email="auditor@netguardian.saturnx.local",
-                hashed_password=get_password_hash("ViewerAuditor2026!"),
+                hashed_password=resolve_password("VIEWER_PASSWORD", "viewer"),
                 role="viewer",
                 is_active=True
             ),
