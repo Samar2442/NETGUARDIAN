@@ -10,21 +10,55 @@ from app.core.security import get_password_hash
 
 def seed_database(db=None):
     import os, secrets
+    from pathlib import Path
     from app.core.config import settings
 
     def resolve_password(env_var: str, role_desc: str) -> str:
-        """Return a hashed password.
-        In DEMO mode a random password is generated when the env var is absent.
-        In production the env var is mandatory – missing results in a clear error.
+        """Resolve password for initial user creation.
+        In PROD: environment variable is mandatory, otherwise raises RuntimeError.
+        In DEV: uses env var if provided; otherwise generates a cryptographically random
+        temporary credential and stores it in .demo_credentials for recovery (without logging).
         """
         raw = os.getenv(env_var)
         if raw:
             return get_password_hash(raw)
-        if settings.DEMO_MODE:
-            # generate a temporary random password for local dev; do NOT log it
-            generated = secrets.token_urlsafe(12)
-            return get_password_hash(generated)
-        raise RuntimeError(f"Missing required environment variable {env_var} for {role_desc} user creation")
+
+        if settings.ENVIRONMENT == "PROD" or not settings.DEMO_MODE:
+            raise RuntimeError(
+                f"Missing required environment variable '{env_var}' for {role_desc} account creation in production."
+            )
+
+        # Development recovery mechanism
+        cred_file = Path(".demo_credentials")
+        saved_passwords = {}
+        if cred_file.exists():
+            try:
+                for line in cred_file.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        saved_passwords[k.strip()] = v.strip()
+            except Exception:
+                pass
+
+        if env_var in saved_passwords:
+            return get_password_hash(saved_passwords[env_var])
+
+        generated = secrets.token_urlsafe(16)
+        saved_passwords[env_var] = generated
+        try:
+            content = (
+                "# NetGuardian Local Development Credentials (Git-ignored)\n"
+                "# Generated for local development account recovery.\n"
+                "# To configure custom credentials, set ADMIN_PASSWORD, ENGINEER_PASSWORD, VIEWER_PASSWORD in .env\n"
+            )
+            for k, v in saved_passwords.items():
+                content += f"{k}={v}\n"
+            cred_file.write_text(content, encoding="utf-8")
+        except Exception:
+            pass
+
+        return get_password_hash(generated)
     close_at_end = False
     if db is None:
         Base.metadata.create_all(bind=engine)

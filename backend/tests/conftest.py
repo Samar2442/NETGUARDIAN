@@ -1,5 +1,16 @@
 import os
+import sys
+from pathlib import Path
+
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 os.environ["TESTING"] = "true"
+os.environ.setdefault("ADMIN_PASSWORD", "NetGuardianAdmin2026!")
+os.environ.setdefault("ENGINEER_PASSWORD", "CiscoEngineer2026!")
+os.environ.setdefault("VIEWER_PASSWORD", "ViewerAuditor2026!")
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

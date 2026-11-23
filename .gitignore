@@ -17,5 +17,7 @@ frontend/dist/
 
 # Environments
 .env
+.demo_credentials
+*.demo_credentials
 .DS_Store
 Thumbs.db

@@ -3,7 +3,18 @@ NetGuardian End-to-End Acceptance Criteria Demonstration Script.
 Executes the complete VLAN 30 Failure & Self-Healing Workflow:
 DETECT -> COLLECT EVIDENCE -> CORRELATE -> IDENTIFY ROOT CAUSE -> PREDICT IMPACT -> RECOMMEND FIX -> HUMAN APPROVAL -> CONTROLLED REMEDIATION -> VERIFY RECOVERY -> RESOLVE.
 """
+import os
 import sys
+from pathlib import Path
+
+backend_dir = Path(__file__).resolve().parent.parent / "backend"
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+os.environ.setdefault("ADMIN_PASSWORD", "NetGuardianAdmin2026!")
+os.environ.setdefault("ENGINEER_PASSWORD", "CiscoEngineer2026!")
+os.environ.setdefault("VIEWER_PASSWORD", "ViewerAuditor2026!")
+
 import time
 from datetime import datetime, timezone
 from app.database.session import SessionLocal, engine, Base

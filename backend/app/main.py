@@ -56,11 +56,13 @@ async def background_monitoring_worker():
 async def lifespan(app: FastAPI):
     logger.info("[*] Starting NetGuardian Backend...")
     # Initialize DB & Seed data if needed
-    Base.metadata.create_all(bind=engine)
-    try:
-        seed_database()
-    except Exception as e:
-        logger.warning(f"Seed note: {e}")
+    import os
+    if not os.getenv("TESTING"):
+        Base.metadata.create_all(bind=engine)
+        try:
+            seed_database()
+        except Exception as e:
+            logger.warning(f"Seed note: {e}")
     
     worker_task = None
     import os
