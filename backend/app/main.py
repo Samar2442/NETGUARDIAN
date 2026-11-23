@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.database.session import engine, SessionLocal, Base
 from app.database.seed import seed_database
 from app.websocket.manager import ws_manager
@@ -82,13 +83,15 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
-# Mount API Routers
+# Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(devices_router, prefix=settings.API_V1_STR)
 app.include_router(interfaces_router, prefix=settings.API_V1_STR)
