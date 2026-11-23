@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: netguardian-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://netguardian:netguardian_pass@db:5432/netguardian_db
+      - ENVIRONMENT=LAB-SIMULATION
+      - DEMO_MODE=true
+      - SECRET_KEY=netguardian-production-secret-key-saturnx
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: netguardian-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: netguardian-postgres
+    environment:
+      - POSTGRES_USER=netguardian
+      - POSTGRES_PASSWORD=netguardian_pass
+      - POSTGRES_DB=netguardian_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
