@@ -6,7 +6,13 @@ from typing import Optional
 from app.database.session import get_db
 from app.models import User, AuditLog
 from app.schemas import Token, LoginRequest, UserResponse, UserCreate
-from app.core.security import verify_password, create_access_token, decode_access_token, get_password_hash
+from app.core.security import (
+    verify_password,
+    create_access_token,
+    decode_access_token,
+    get_password_hash,
+    DUMMY_BCRYPT_HASH
+)
 from app.core.config import settings
 from app.core.rate_limit import (
     login_rate_limiter,
@@ -64,8 +70,15 @@ def login(
     # 2. Case-insensitive user lookup
     user = db.query(User).filter(func.lower(User.username) == norm_username).first()
 
-    # 3. Credential verification with constant-time comparison
-    if not user or not verify_password(login_data.password, user.hashed_password) or not user.is_active:
+    # 3. Credential verification with constant-time comparison and dummy-hash timing attack mitigation
+    if user:
+        is_pw_valid = verify_password(login_data.password, user.hashed_password)
+    else:
+        # Run dummy bcrypt check so invalid usernames take identical execution time (~240ms)
+        verify_password(login_data.password, DUMMY_BCRYPT_HASH)
+        is_pw_valid = False
+
+    if not user or not is_pw_valid or not user.is_active:
         # Record failure for both IP and Username
         login_rate_limiter.record_failure(f"ip:{client_ip}")
         login_rate_limiter.record_failure(f"user:{norm_username}")

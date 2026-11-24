@@ -28,6 +28,9 @@ def approve_proposal(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
+    prop = db.query(RemediationProposal).filter(RemediationProposal.id == id).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Proposal not found")
     approved_by = current_user.username if isinstance(current_user, User) else payload.get("approved_by", "admin")
     prop = RemediationEngine.approve_proposal(db, id, approved_by)
     return prop
@@ -39,6 +42,9 @@ def reject_proposal(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
+    prop = db.query(RemediationProposal).filter(RemediationProposal.id == id).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Proposal not found")
     rejected_by = current_user.username if isinstance(current_user, User) else payload.get("rejected_by", "admin")
     prop = RemediationEngine.reject_proposal(db, id, rejected_by)
     return prop
@@ -50,6 +56,9 @@ def execute_remediation(
     current_user: User = Depends(require_engineer),
     db: Session = Depends(get_db)
 ):
+    prop = db.query(RemediationProposal).filter(RemediationProposal.id == id).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Proposal not found")
     executed_by = current_user.username if isinstance(current_user, User) else payload.get("executed_by", "admin")
     res = RemediationEngine.execute_remediation(db, id, executed_by)
     return res

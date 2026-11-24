@@ -22,6 +22,10 @@ class TokenSignatureError(TokenSecurityError):
 class TokenClaimError(TokenSecurityError):
     pass
 
+# Precomputed dummy bcrypt hash (work factor 12) to mitigate user-enumeration timing attacks.
+# Matches format of standard bcrypt hash for nonexistent user evaluation.
+DUMMY_BCRYPT_HASH = "$2b$12$e8Y0wU3aY0m7A9V7eS6xqunF2h1e0XGZ2wY3v4u5t6s7r8q9p0o1n"
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plain password against bcrypt hash in constant-time comparison."""
     if not plain_password or not hashed_password:
