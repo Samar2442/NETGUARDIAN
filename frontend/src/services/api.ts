@@ -152,4 +152,22 @@ export const api = {
   getSimulationStatus: () => request<any>('/simulation/status'),
   injectSimulationFault: (data: any) => request<any>('/simulation/faults', { method: 'POST', body: JSON.stringify(data) }),
   recoverSimulationFault: (faultId: string) => request<any>(`/simulation/faults/${faultId}/recover`, { method: 'POST' }),
+
+  // Incident Lifecycle, Services, SLA & Reporting (Milestone 5)
+  assignIncident: (id: string, assigned_to: string, priority?: string) =>
+    request<any>(`/incidents/${id}/assign`, { method: 'POST', body: JSON.stringify({ assigned_to, priority }) }),
+  transitionIncident: (id: string, target_state: string, reason?: string) =>
+    request<any>(`/incidents/${id}/transition`, { method: 'POST', body: JSON.stringify({ target_state, reason }) }),
+  addIncidentNote: (id: string, content: string) =>
+    request<any>(`/incidents/${id}/notes`, { method: 'POST', body: JSON.stringify({ content }) }),
+  getIncidentNotes: (id: string) => request<any[]>(`/incidents/${id}/notes`),
+  getIncidentTimeline: (id: string) => request<any[]>(`/incidents/${id}/timeline`),
+  getIncidentRelatedEvents: (id: string) => request<any[]>(`/incidents/${id}/related-events`),
+  getIncidentEscalations: () => request<any[]>('/incidents/escalations'),
+  getServicesSummary: () => request<any>('/services/summary'),
+  getCampusServices: () => request<any[]>('/services'),
+  getServiceDependencies: (id: string) => request<any[]>(`/services/${id}/dependencies`),
+  getSlaOverview: () => request<any>('/sla/overview'),
+  getSlaMetrics: () => request<any>('/sla/metrics'),
+  getReportJson: (reportType: string) => request<any>(`/reports/${reportType}?format=json`),
 };

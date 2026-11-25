@@ -103,8 +103,10 @@ def seed_database(db=None):
         print("[*] Seeding University Campus Network (3 VLANs, 3-Tier Infra, 250 Endpoints)...")
         from app.database.campus_seed import seed_campus_network
         from app.seeders.campus_inventory_seed import seed_campus_inventory
+        from app.services.service_intelligence import ServiceIntelligenceEngine
         summary = seed_campus_network(db, force_reset=False)
         inv_summary = seed_campus_inventory(db)
+        svc_count = ServiceIntelligenceEngine.seed_campus_services(db)
 
         audit = AuditLog(
             username="system",

@@ -11,6 +11,8 @@ def _login(client, username: str, password: str) -> str:
 
 def test_cisco_style_event_generation_and_deduplication(db):
     dev = db.query(Device).filter(Device.hostname == "SW-CORE-01").first()
+    db.query(Event).filter(Event.source_id == str(dev.id), Event.event_type == "HIGH_CPU", Event.resolved == False).update({"resolved": True})
+    db.commit()
     now = datetime.now(timezone.utc)
 
     ev1 = TelemetryEngine._emit_deduplicated_event(

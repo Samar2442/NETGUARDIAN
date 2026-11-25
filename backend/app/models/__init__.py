@@ -22,6 +22,11 @@ from app.models.base import (
     DeviceTelemetry,
     InterfaceTelemetry,
     FaultScenario,
+    IncidentNote,
+    IncidentActivity,
+    IncidentEscalation,
+    CampusService,
+    ServiceDependency,
     generate_uuid
 )
 
@@ -49,5 +54,10 @@ __all__ = [
     "DeviceTelemetry",
     "InterfaceTelemetry",
     "FaultScenario",
+    "IncidentNote",
+    "IncidentActivity",
+    "IncidentEscalation",
+    "CampusService",
+    "ServiceDependency",
     "generate_uuid"
 ]

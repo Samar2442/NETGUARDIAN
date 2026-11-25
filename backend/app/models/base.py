@@ -166,18 +166,28 @@ class Incident(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     severity = Column(String(20), default="high", index=True)  # critical, high, medium, low
+    priority = Column(String(10), default="P2", index=True)  # P1, P2, P3, P4
     status = Column(String(30), default="DETECTED", index=True)
-    # DETECTED, INVESTIGATING, ROOT_CAUSE_IDENTIFIED, REMEDIATION_PROPOSED, APPROVED, APPLIED, VERIFICATION, RESOLVED, ROLLBACK, ESCALATED
+    lifecycle_state = Column(String(30), default="NEW", index=True)
+    # NEW, ACKNOWLEDGED, IN_PROGRESS, MITIGATED, RESOLVED, CLOSED
     source_device_id = Column(String(36), ForeignKey("devices.id"), nullable=True)
     source_device_name = Column(String(100), nullable=True)
     affected_device_ids = Column(JSON, default=list)
+    affected_interface_ids = Column(JSON, default=list)
     affected_vlan_ids = Column(JSON, default=list)
     affected_endpoints_count = Column(Integer, default=0)
+    root_event_id = Column(String(36), nullable=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    assigned_to = Column(String(50), nullable=True, index=True)
+    assigned_at = Column(DateTime, nullable=True)
+    escalation_level = Column(Integer, default=0)
+    escalated_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     acknowledged_at = Column(DateTime, nullable=True)
     acknowledged_by = Column(String(50), nullable=True)
     resolved_at = Column(DateTime, nullable=True)
+    closed_at = Column(DateTime, nullable=True)
     source = Column(String(30), default="SIMULATION")
 
     events = relationship("Event", backref="incident", lazy="dynamic")
@@ -442,3 +452,69 @@ class FaultScenario(Base):
     created_by = Column(String(50), nullable=False)
     simulation_run_id = Column(String(64), nullable=True)
     telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
+
+
+class IncidentNote(Base):
+    """Engineer investigation note attached to an incident."""
+    __tablename__ = "incident_notes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=False, index=True)
+    author = Column(String(50), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class IncidentActivity(Base):
+    """Immutable investigation timeline entry for an incident."""
+    __tablename__ = "incident_activities"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=False, index=True)
+    actor = Column(String(50), nullable=False)
+    action = Column(String(60), nullable=False, index=True)
+    details = Column(JSON, default=dict)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class IncidentEscalation(Base):
+    """Escalation policy trigger record (prevents duplicate escalation per level)."""
+    __tablename__ = "incident_escalations"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=False, index=True)
+    escalation_level = Column(Integer, nullable=False, default=1)
+    severity = Column(String(20), nullable=False)
+    reason = Column(String(255), nullable=False)
+    escalated_to = Column(String(50), nullable=False, default="admin")
+    escalated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class CampusService(Base):
+    """Logical campus IT/network service backed by infrastructure dependencies."""
+    __tablename__ = "campus_services"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    service_key = Column(String(50), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    description = Column(Text, nullable=False)
+    service_category = Column(String(50), nullable=False)
+    criticality = Column(String(20), nullable=False, default="HIGH")
+    owner_team = Column(String(80), nullable=False)
+    department_scope = Column(String(50), nullable=False, default="All")
+    operational_status = Column(String(30), nullable=False, default="OPERATIONAL")
+    sla_target_pct = Column(Float, nullable=False, default=99.5)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ServiceDependency(Base):
+    """Maps a CampusService to real DB Device, VLAN, or NetworkLink entities."""
+    __tablename__ = "service_dependencies"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    service_id = Column(String(36), ForeignKey("campus_services.id"), nullable=False, index=True)
+    resource_type = Column(String(20), nullable=False)  # device, vlan, link
+    resource_id = Column(String(36), nullable=False, index=True)
+    resource_name = Column(String(120), nullable=False)
+    dependency_role = Column(String(30), nullable=False, default="PRIMARY")  # PRIMARY, CORE_PATH, REDUNDANT_PATH
+    is_critical = Column(Boolean, default=True)

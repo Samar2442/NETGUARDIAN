@@ -268,17 +268,27 @@ class IncidentResponse(BaseModel):
     title: str
     description: str
     severity: str
+    priority: str = "P2"
     status: str
+    lifecycle_state: str = "NEW"
     source_device_id: Optional[str] = None
     source_device_name: Optional[str] = None
     affected_device_ids: List[str] = []
+    affected_interface_ids: List[str] = []
     affected_vlan_ids: List[int] = []
     affected_endpoints_count: int = 0
+    root_event_id: Optional[str] = None
+    correlation_id: Optional[str] = None
+    assigned_to: Optional[str] = None
+    assigned_at: Optional[datetime] = None
+    escalation_level: int = 0
+    escalated_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     acknowledged_at: Optional[datetime] = None
     acknowledged_by: Optional[str] = None
     resolved_at: Optional[datetime] = None
+    closed_at: Optional[datetime] = None
     source: str = "SIMULATION"
     diagnosis: Optional[DiagnosisResponse] = None
     remediations: List[RemediationResponse] = []

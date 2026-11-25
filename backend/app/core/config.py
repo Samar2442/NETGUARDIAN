@@ -77,6 +77,11 @@ class Settings(BaseSettings):
     THRESHOLD_TEMP_WARN: float = 65.0
     THRESHOLD_TEMP_CRIT: float = 80.0
 
+    # Incident Escalation Policy (Milestone 5)
+    ESCALATION_CRITICAL_MINUTES: int = 5
+    ESCALATION_MAJOR_MINUTES: int = 15
+    ESCALATION_MINOR_MINUTES: int = 30
+
     # CORS – list of allowed frontend origins
     BACKEND_CORS_ORIGINS: List[str] = Field(
         default_factory=lambda: [

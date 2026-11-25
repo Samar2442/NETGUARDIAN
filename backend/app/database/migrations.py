@@ -44,8 +44,18 @@ TABLE_MIGRATIONS = {
         "resolved": "BOOLEAN DEFAULT 0",
     },
     "incidents": {
+        "priority": "VARCHAR(10) DEFAULT 'P2'",
+        "lifecycle_state": "VARCHAR(30) DEFAULT 'NEW'",
+        "affected_interface_ids": "JSON DEFAULT '[]'",
+        "root_event_id": "VARCHAR(36)",
+        "correlation_id": "VARCHAR(64)",
+        "assigned_to": "VARCHAR(50)",
+        "assigned_at": "DATETIME",
+        "escalation_level": "INTEGER DEFAULT 0",
+        "escalated_at": "DATETIME",
         "acknowledged_at": "DATETIME",
         "acknowledged_by": "VARCHAR(50)",
+        "closed_at": "DATETIME",
         "source": "VARCHAR(30) DEFAULT 'SIMULATION'",
     },
 }

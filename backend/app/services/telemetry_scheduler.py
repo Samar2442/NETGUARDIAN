@@ -39,7 +39,9 @@ class TelemetryScheduler:
                     def _run_sync():
                         db = SessionLocal()
                         try:
+                            from app.services.incident_lifecycle import IncidentLifecycleService
                             res = TelemetryEngine.collect_once(db)
+                            IncidentLifecycleService.evaluate_escalations(db)
                             return res
                         finally:
                             db.close()

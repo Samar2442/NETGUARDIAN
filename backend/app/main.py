@@ -31,6 +31,8 @@ from app.api.v1.campus_inventory import router as campus_inventory_router
 from app.api.v1.telemetry import router as telemetry_router
 from app.api.v1.events import router as events_router
 from app.api.v1.simulation import router as simulation_router
+from app.api.v1.services import router as services_router
+from app.api.v1.reports import router as reports_router
 from app.services.telemetry_scheduler import telemetry_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -120,6 +122,8 @@ app.include_router(campus_inventory_router, prefix=settings.API_V1_STR)
 app.include_router(telemetry_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
 app.include_router(simulation_router, prefix=settings.API_V1_STR)
+app.include_router(services_router, prefix=settings.API_V1_STR)
+app.include_router(reports_router, prefix=settings.API_V1_STR)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
