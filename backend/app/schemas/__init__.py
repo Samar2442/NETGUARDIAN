@@ -205,6 +205,9 @@ class RemediationResponse(BaseModel):
     device_id: str
     title: str
     target_interface: Optional[str] = None
+    operation: Optional[str] = None
+    parameters: Optional[Dict[str, Any]] = None
+    execution_mode: str = "SIMULATION"
     proposed_commands: str
     rollback_commands: str
     risk_level: str
@@ -212,6 +215,11 @@ class RemediationResponse(BaseModel):
     status: str
     approved_by: Optional[str] = None
     approved_at: Optional[datetime] = None
+    config_revision: Optional[str] = None
+    approval_digest: Optional[str] = None
+    executed_by: Optional[str] = None
+    execution_started_at: Optional[datetime] = None
+    execution_finished_at: Optional[datetime] = None
     applied_at: Optional[datetime] = None
     verification_status: Optional[str] = None
     execution_log: Optional[str] = None

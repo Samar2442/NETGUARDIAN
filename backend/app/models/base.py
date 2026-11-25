@@ -188,6 +188,9 @@ class RemediationProposal(Base):
     device_id = Column(String(36), ForeignKey("devices.id"), nullable=False)
     title = Column(String(255), nullable=False)
     target_interface = Column(String(50), nullable=True)
+    operation = Column(String(64), nullable=True)
+    parameters = Column(JSON, default=dict)
+    execution_mode = Column(String(20), default="SIMULATION")
     proposed_commands = Column(Text, nullable=False)
     rollback_commands = Column(Text, nullable=False)
     risk_level = Column(String(20), default="low")  # low, medium, high
@@ -196,6 +199,11 @@ class RemediationProposal(Base):
     # PENDING_APPROVAL, APPROVED, REJECTED, EXECUTING, APPLIED, VERIFYING, VERIFIED, FAILED, ROLLED_BACK
     approved_by = Column(String(50), nullable=True)
     approved_at = Column(DateTime, nullable=True)
+    config_revision = Column(String(64), nullable=True)
+    approval_digest = Column(String(64), nullable=True)
+    executed_by = Column(String(50), nullable=True)
+    execution_started_at = Column(DateTime, nullable=True)
+    execution_finished_at = Column(DateTime, nullable=True)
     applied_at = Column(DateTime, nullable=True)
     verification_status = Column(String(30), nullable=True)
     execution_log = Column(Text, nullable=True)

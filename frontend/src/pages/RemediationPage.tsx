@@ -97,7 +97,7 @@ export const RemediationPage: React.FC = () => {
     }
   };
 
-  const canApprove = role === 'admin' || role === 'network_engineer';
+  const canApprove = role === 'admin';
 
   return (
     <div className="space-y-6">
@@ -155,7 +155,16 @@ export const RemediationPage: React.FC = () => {
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
                     <div>
                       <h2 className="text-base font-bold text-white">{selectedProposal.title}</h2>
-                      <p className="text-xs text-slate-400 mt-0.5">Target Interface: {selectedProposal.target_interface || 'N/A'}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Target Interface: {selectedProposal.target_interface || 'N/A'}
+                        {selectedProposal.operation ? ` • Operation: ${selectedProposal.operation}` : ''}
+                        {selectedProposal.execution_mode ? ` • Mode: ${selectedProposal.execution_mode}` : ''}
+                      </p>
+                      {selectedProposal.approval_digest && (
+                        <p className="text-[10px] font-mono text-cyan-400/90 mt-1">
+                          Approval Digest: {selectedProposal.approval_digest.slice(0, 16)}...
+                        </p>
+                      )}
                     </div>
                     <Badge variant={selectedProposal.status === 'VERIFIED' ? 'success' : 'warning'}>
                       {selectedProposal.status}

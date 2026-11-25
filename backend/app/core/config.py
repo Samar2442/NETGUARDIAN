@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = True
     ALLOW_REAL_SSH: bool = False
 
+    # Remediation Execution Security Settings (Phase 5A)
+    REMEDIATION_EXECUTION_MODE: str = "SIMULATION"  # SIMULATION, LAB, PRODUCTION
+    REMEDIATION_EXECUTION_TIMEOUT_SECONDS: int = 30
+    ALLOW_LAB_EXECUTION: bool = False
+    ALLOW_PRODUCTION_EXECUTION: bool = False
+    AUTHORIZED_LAB_DEVICES: List[str] = Field(default_factory=list)
+
     # Monitoring intervals in seconds
     MONITORING_INTERVAL_SECONDS: int = 10
     METRIC_RETENTION_HOURS: int = 72
@@ -118,6 +125,13 @@ class Settings(BaseSettings):
             raise ValueError("LOGIN_RATE_LIMIT_COOLDOWN_SECONDS must be greater than zero.")
         if self.LOGIN_RATE_LIMIT_BACKEND not in {"memory", "redis"}:
             raise ValueError("LOGIN_RATE_LIMIT_BACKEND must be 'memory' or 'redis'.")
+
+        # 3. Remediation Execution Mode validation
+        self.REMEDIATION_EXECUTION_MODE = self.REMEDIATION_EXECUTION_MODE.strip().upper()
+        if self.REMEDIATION_EXECUTION_MODE not in {"SIMULATION", "LAB", "PRODUCTION"}:
+            raise ValueError("REMEDIATION_EXECUTION_MODE must be 'SIMULATION', 'LAB', or 'PRODUCTION'.")
+        if self.REMEDIATION_EXECUTION_TIMEOUT_SECONDS <= 0:
+            raise ValueError("REMEDIATION_EXECUTION_TIMEOUT_SECONDS must be greater than zero.")
 
         if self.ENVIRONMENT == "PROD":
             # Secret Key validation in production

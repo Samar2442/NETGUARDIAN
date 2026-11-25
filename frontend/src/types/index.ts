@@ -137,6 +137,9 @@ export interface RemediationProposal {
   device_id: string;
   title: string;
   target_interface?: string;
+  operation?: string;
+  parameters?: Record<string, any>;
+  execution_mode?: 'SIMULATION' | 'LAB' | 'PRODUCTION' | string;
   proposed_commands: string;
   rollback_commands: string;
   risk_level: 'low' | 'medium' | 'high';
@@ -144,6 +147,9 @@ export interface RemediationProposal {
   status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'EXECUTING' | 'APPLIED' | 'VERIFYING' | 'VERIFIED' | 'FAILED' | 'ROLLED_BACK';
   approved_by?: string;
   approved_at?: string;
+  config_revision?: string;
+  approval_digest?: string;
+  executed_by?: string;
   applied_at?: string;
   verification_status?: string;
   execution_log?: string;

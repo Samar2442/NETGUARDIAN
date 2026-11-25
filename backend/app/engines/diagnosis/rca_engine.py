@@ -4,6 +4,10 @@ from sqlalchemy.orm import Session
 from app.models import (
     Incident, Diagnosis, Event, Device, NetworkInterface, VLAN, Route, RemediationProposal, ConfigSnapshot
 )
+from app.engines.remediation.command_validator import (
+    RemediationOperation,
+    build_structured_commands,
+)
 
 class RootCauseAnalysisEngine:
     """
@@ -141,13 +145,21 @@ class RootCauseAnalysisEngine:
             # Also create RemediationProposal if not already exists
             existing_prop = db.query(RemediationProposal).filter(RemediationProposal.incident_id == incident.id).first()
             if not existing_prop:
+                proposed_cmds, rollback_cmds, _, norm_params = build_structured_commands(
+                    operation=RemediationOperation.ADD_VLAN_TO_TRUNK.value,
+                    interface=target_interface.name,
+                    parameters={"vlan_id": missing_vlan_id},
+                )
                 prop = RemediationProposal(
                     incident_id=incident.id,
                     device_id=target_switch.id,
                     title=f"Restore VLAN {missing_vlan_id} to {target_switch.hostname} {target_interface.name} Trunk",
                     target_interface=target_interface.name,
-                    proposed_commands=f"interface {target_interface.name}\n switchport trunk allowed vlan add {missing_vlan_id}",
-                    rollback_commands=f"interface {target_interface.name}\n switchport trunk allowed vlan remove {missing_vlan_id}",
+                    operation=RemediationOperation.ADD_VLAN_TO_TRUNK.value,
+                    parameters=norm_params,
+                    execution_mode="SIMULATION",
+                    proposed_commands=proposed_cmds,
+                    rollback_commands=rollback_cmds,
                     risk_level="low",
                     expected_result=f"VLAN {missing_vlan_id} 802.1Q tagged frames will be permitted through {target_interface.name}, restoring gateway reachability.",
                     status="PENDING_APPROVAL"
@@ -207,13 +219,21 @@ class RootCauseAnalysisEngine:
             
             existing_prop = db.query(RemediationProposal).filter(RemediationProposal.incident_id == incident.id).first()
             if not existing_prop:
+                proposed_cmds, rollback_cmds, _, norm_params = build_structured_commands(
+                    operation=RemediationOperation.ENABLE_INTERFACE.value,
+                    interface=iface.name,
+                    parameters={},
+                )
                 prop = RemediationProposal(
                     incident_id=incident.id,
                     device_id=dev.id,
                     title=f"Re-enable interface {iface.name} on {dev.hostname}",
                     target_interface=iface.name,
-                    proposed_commands=f"interface {iface.name}\n no shutdown",
-                    rollback_commands=f"interface {iface.name}\n shutdown",
+                    operation=RemediationOperation.ENABLE_INTERFACE.value,
+                    parameters=norm_params,
+                    execution_mode="SIMULATION",
+                    proposed_commands=proposed_cmds,
+                    rollback_commands=rollback_cmds,
                     risk_level="low",
                     expected_result=f"Interface {iface.name} state changes to UP/UP.",
                     status="PENDING_APPROVAL"

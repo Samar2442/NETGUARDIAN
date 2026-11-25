@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.database.session import engine, SessionLocal, Base
+from app.database.migrations import run_safe_migrations
 from app.database.seed import seed_database
 from app.websocket.manager import ws_manager
 from app.engines.monitoring.monitoring_engine import MonitoringEngine
@@ -59,6 +60,7 @@ async def lifespan(app: FastAPI):
     import os
     if not os.getenv("TESTING"):
         Base.metadata.create_all(bind=engine)
+        run_safe_migrations(engine)
         try:
             seed_database()
         except Exception as e:
