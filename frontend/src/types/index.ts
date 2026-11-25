@@ -61,6 +61,7 @@ export interface VLAN {
   id: string;
   vlan_id: number;
   name: string;
+  department?: string;
   description?: string;
   subnet: string;
   gateway_ip: string;

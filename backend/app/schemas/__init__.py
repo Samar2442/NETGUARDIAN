@@ -78,6 +78,13 @@ class DeviceBase(BaseModel):
     model: str = "Catalyst 3850"
     os_version: str = "Cisco IOS-XE 17.6.4"
     location: str = "HQ Datacenter"
+    department: Optional[str] = None
+    vlan_id: Optional[int] = None
+    mac_address: Optional[str] = None
+    connected_switch_id: Optional[str] = None
+    connected_interface: Optional[str] = None
+    asset_category: str = "infrastructure"
+    layer: Optional[str] = None
     status: str = "online"
     monitoring_status: str = "active"
 
@@ -89,6 +96,8 @@ class DeviceUpdate(BaseModel):
     management_ip: Optional[str] = None
     device_type: Optional[str] = None
     location: Optional[str] = None
+    department: Optional[str] = None
+    vlan_id: Optional[int] = None
     status: Optional[str] = None
     monitoring_status: Optional[str] = None
 
@@ -109,6 +118,7 @@ class DeviceResponse(DeviceBase):
 class VLANBase(BaseModel):
     vlan_id: int
     name: str
+    department: Optional[str] = None
     description: Optional[str] = None
     subnet: str
     gateway_ip: str
@@ -146,6 +156,21 @@ class RouteResponse(RouteBase):
         from_attributes = True
 
 # Link Schemas
+class NetworkLinkCreate(BaseModel):
+    name: str
+    source_device_id: str
+    source_interface_name: str
+    target_device_id: str
+    target_interface_name: str
+    link_type: str = "ethernet"
+    admin_status: str = "up"
+    status: str = "up"
+    bandwidth_mbps: int = 1000
+    duplex: str = "full"
+    allowed_vlans: Optional[str] = None
+    is_redundant: bool = False
+
+
 class NetworkLinkResponse(BaseModel):
     id: str
     name: str
@@ -154,11 +179,16 @@ class NetworkLinkResponse(BaseModel):
     target_device_id: str
     target_interface_name: str
     link_type: str
+    admin_status: str = "up"
     status: str
     bandwidth_mbps: int
+    duplex: str = "full"
+    allowed_vlans: Optional[str] = None
+    utilization_pct: float = 12.0
     latency_ms: float
     packet_loss_pct: float
     is_redundant: bool
+    last_state_change: Optional[datetime] = None
     updated_at: datetime
 
     class Config:

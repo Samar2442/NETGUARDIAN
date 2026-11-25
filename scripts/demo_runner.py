@@ -18,6 +18,7 @@ os.environ.setdefault("VIEWER_PASSWORD", "ViewerAuditor2026!")
 import time
 from datetime import datetime, timezone
 from app.database.session import SessionLocal, engine, Base
+from app.database.migrations import run_safe_migrations
 from app.database.seed import seed_database
 from app.models import Device, NetworkInterface, Incident, Event, Diagnosis, RemediationProposal, HealthMetric, AuditLog
 from app.engines.training.training_engine import TrainingEngine
@@ -41,6 +42,8 @@ def run_acceptance_demo():
     =======================================================================
     """)
 
+    Base.metadata.create_all(bind=engine)
+    run_safe_migrations(engine)
     db = SessionLocal()
     try:
         # STEP 1: Launch & Initialize

@@ -61,7 +61,9 @@ def seed_database(db=None):
         return get_password_hash(generated)
     close_at_end = False
     if db is None:
+        from app.database.migrations import run_safe_migrations
         Base.metadata.create_all(bind=engine)
+        run_safe_migrations(engine)
         db = SessionLocal()
         close_at_end = True
 
@@ -97,6 +99,23 @@ def seed_database(db=None):
         ]
         db.add_all(users)
         db.commit()
+
+        print("[*] Seeding University Campus Network (3 VLANs, 3-Tier Infra, 250 Endpoints)...")
+        from app.database.campus_seed import seed_campus_network
+        summary = seed_campus_network(db, force_reset=False)
+
+        audit = AuditLog(
+            username="system",
+            action="SYSTEM_INIT",
+            resource_type="SYSTEM",
+            resource_id="NETGUARDIAN-CAMPUS-INIT",
+            details={"message": "NetGuardian University Campus Network initialized.", **summary},
+            status="SUCCESS"
+        )
+        db.add(audit)
+        db.commit()
+        print(f"[+] Campus seed completed: {summary}")
+        return
 
         print("[*] Seeding VLANs...")
         vlans = [

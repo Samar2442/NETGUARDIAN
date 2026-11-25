@@ -44,32 +44,50 @@ class DigitalTwinEngine:
         return G
 
     @staticmethod
-    def get_topology_payload(db: Session) -> Dict[str, Any]:
+    def get_topology_payload(db: Session, include_endpoints: bool = False) -> Dict[str, Any]:
         """
-        Returns nodes and edges formatted for React Flow with CCNA layout and coordinates.
+        Returns nodes and edges formatted for React Flow with 3-tier Campus layout.
+        Infrastructure (edge, core, distribution, access, servers, APs) is always included;
+        250 student endpoints can be included via include_endpoints=True.
         """
-        devices = db.query(Device).all()
+        if include_endpoints:
+            devices = db.query(Device).all()
+        else:
+            devices = db.query(Device).filter(Device.asset_category != "student_endpoint").all()
+
+        device_ids = {d.id for d in devices}
         links = db.query(NetworkLink).all()
 
-        # Coordinates layout map based on 3-tier enterprise hierarchy
-        # Core (y=50), Distribution (y=180), Access & Servers (y=320), Endpoints (y=460)
         coord_map = {
-            "HQ-Core-RTR-01": {"x": 450, "y": 40},
-            "HQ-Core-SW-01": {"x": 450, "y": 160},
-            "HQ-Dist-SW-01": {"x": 450, "y": 280},
-            "HQ-Access-SW-01": {"x": 220, "y": 400},
-            "HQ-Access-SW-02": {"x": 680, "y": 400},
-            "HQ-DC-SRV-APP01": {"x": 80, "y": 220},
-            "HQ-DC-SRV-DB01": {"x": 80, "y": 140},
-            "HQ-DC-SRV-DHCP": {"x": 80, "y": 300},
-            "PC-Admin-01": {"x": 220, "y": 520},
-            "PC-Student-01": {"x": 620, "y": 520},
-            "PC-Student-02": {"x": 740, "y": 520},
+            "RTR-EDGE-01": {"x": 520, "y": 20},
+            "FW-CAMPUS-01": {"x": 520, "y": 110},
+            "SW-CORE-01": {"x": 520, "y": 210},
+            "SRV-DHCP-01": {"x": 80, "y": 130},
+            "SRV-DNS-01": {"x": 80, "y": 200},
+            "SRV-APP-01": {"x": 80, "y": 270},
+            "SRV-NMS-01": {"x": 80, "y": 340},
+            "SW-DIST-01": {"x": 340, "y": 320},
+            "SW-DIST-02": {"x": 720, "y": 320},
+            "SW-CSE-01": {"x": 140, "y": 440},
+            "SW-CSE-02": {"x": 300, "y": 440},
+            "SW-IT-01": {"x": 460, "y": 440},
+            "SW-IT-02": {"x": 620, "y": 440},
+            "SW-ECE-01": {"x": 780, "y": 440},
+            "SW-ECE-02": {"x": 940, "y": 440},
+            "AP-CSE-01": {"x": 140, "y": 550},
+            "AP-CSE-02": {"x": 300, "y": 550},
+            "AP-IT-01": {"x": 460, "y": 550},
+            "AP-IT-02": {"x": 620, "y": 550},
+            "AP-ECE-01": {"x": 780, "y": 550},
+            "AP-ECE-02": {"x": 940, "y": 550},
+            "HQ-Access-SW-02": {"x": 1100, "y": 440},
+            "PC-Student-01": {"x": 1060, "y": 550},
+            "PC-Student-02": {"x": 1160, "y": 550},
         }
 
         nodes = []
-        for d in devices:
-            pos = coord_map.get(d.hostname, {"x": 300, "y": 300})
+        for idx, d in enumerate(devices):
+            pos = coord_map.get(d.hostname, {"x": 150 + (idx % 10) * 110, "y": 660 + (idx // 10) * 60})
             nodes.append({
                 "id": d.id,
                 "type": "ciscoNode",
@@ -80,6 +98,10 @@ class DigitalTwinEngine:
                     "hostname": d.hostname,
                     "ip": d.management_ip,
                     "device_type": d.device_type,
+                    "department": d.department,
+                    "vlan_id": d.vlan_id,
+                    "layer": d.layer,
+                    "asset_category": d.asset_category,
                     "model": d.model,
                     "status": d.status,
                     "cpu": d.cpu_percent,
@@ -90,6 +112,8 @@ class DigitalTwinEngine:
 
         edges = []
         for l in links:
+            if l.source_device_id not in device_ids or l.target_device_id not in device_ids:
+                continue
             is_down = l.status == "down"
             edges.append({
                 "id": l.id,
@@ -105,6 +129,7 @@ class DigitalTwinEngine:
                     "status": l.status,
                     "latency": l.latency_ms,
                     "bandwidth": l.bandwidth_mbps,
+                    "allowed_vlans": l.allowed_vlans,
                     "is_redundant": l.is_redundant
                 },
                 "style": {

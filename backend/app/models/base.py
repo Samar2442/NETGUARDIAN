@@ -26,11 +26,18 @@ class Device(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     hostname = Column(String(100), unique=True, nullable=False, index=True)
     management_ip = Column(String(45), nullable=False, index=True)
-    device_type = Column(String(50), nullable=False)  # router, l3_switch, l2_switch, access_switch, server, endpoint
+    device_type = Column(String(50), nullable=False)  # router, firewall, l3_switch, l2_switch, access_switch, wireless_ap, server, endpoint
     vendor = Column(String(50), default="Cisco")
     model = Column(String(100), default="Catalyst 3850 / ISR 4331")
     os_version = Column(String(100), default="Cisco IOS-XE 17.6.4")
     location = Column(String(100), default="HQ Datacenter")
+    department = Column(String(100), nullable=True, index=True)
+    vlan_id = Column(Integer, nullable=True, index=True)
+    mac_address = Column(String(20), unique=True, nullable=True, index=True)
+    connected_switch_id = Column(String(36), nullable=True, index=True)
+    connected_interface = Column(String(50), nullable=True)
+    asset_category = Column(String(40), default="infrastructure", index=True)
+    layer = Column(String(30), nullable=True)
     status = Column(String(20), default="online", index=True)  # online, degraded, offline
     monitoring_status = Column(String(20), default="active")  # active, paused, error
     uptime_seconds = Column(Integer, default=864000)
@@ -83,6 +90,7 @@ class VLAN(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     vlan_id = Column(Integer, unique=True, nullable=False, index=True)
     name = Column(String(50), nullable=False)
+    department = Column(String(100), nullable=True, index=True)
     description = Column(String(255), nullable=True)
     subnet = Column(String(50), nullable=False)
     gateway_ip = Column(String(45), nullable=False)
@@ -115,11 +123,16 @@ class NetworkLink(Base):
     target_device_id = Column(String(36), ForeignKey("devices.id"), nullable=False)
     target_interface_name = Column(String(50), nullable=False)
     link_type = Column(String(30), default="ethernet")  # ethernet, trunk, fiber, port-channel
+    admin_status = Column(String(10), default="up")
     status = Column(String(20), default="up")  # up, degraded, down
     bandwidth_mbps = Column(Integer, default=1000)
+    duplex = Column(String(10), default="full")
+    allowed_vlans = Column(String(255), nullable=True)
+    utilization_pct = Column(Float, default=12.0)
     latency_ms = Column(Float, default=1.2)
     packet_loss_pct = Column(Float, default=0.0)
     is_redundant = Column(Boolean, default=False)
+    last_state_change = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class Event(Base):

@@ -50,11 +50,17 @@ export const api = {
 
   // VLANs & Routing
   getVlans: () => request<any[]>('/vlans'),
+  getVlanDepartmentsOverview: () => request<any[]>('/vlans/departments/overview'),
+  getVlanDetails: (vlanId: number) => request<any>(`/vlans/${vlanId}`),
   getRoutes: () => request<any[]>('/routes'),
 
   // Topology
-  getTopology: () => request<any>('/topology'),
+  getTopology: (includeEndpoints = false) =>
+    request<any>(`/topology?include_endpoints=${includeEndpoints}`),
   getLinks: () => request<any[]>('/topology/links'),
+  getCampusOverview: () => request<any>('/topology/campus-overview'),
+  validateTopology: () => request<any>('/topology/validate'),
+  resetCampusTopology: () => request<any>('/topology/reset', { method: 'POST' }),
 
   // Incidents & RCA
   getIncidents: () => request<any[]>('/incidents'),

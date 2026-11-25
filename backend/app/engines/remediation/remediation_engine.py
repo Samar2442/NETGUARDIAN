@@ -383,7 +383,6 @@ class RemediationEngine:
             )
 
         # Verify cryptographic approval binding digest BEFORE re-validating parameters
-        # so any post-approval tampering is explicitly caught and audited.
         recalculated_digest = compute_approval_digest(
             proposal_id=proposal.id,
             device_id=proposal.device_id,

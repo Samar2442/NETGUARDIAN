@@ -12,11 +12,13 @@ import '@xyflow/react/dist/style.css';
 import { api } from '../services/api';
 import { CiscoNode } from '../components/topology/CiscoNode';
 import { Badge } from '../components/common/Badge';
-import { Network, Server, Layers, Filter, RefreshCw, Info } from 'lucide-react';
+import { Network, RefreshCw, Info, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export const TopologyPage: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [overview, setOverview] = useState<any | null>(null);
+  const [validation, setValidation] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
 
@@ -25,9 +27,15 @@ export const TopologyPage: React.FC = () => {
   const loadTopology = async () => {
     try {
       setLoading(true);
-      const data = await api.getTopology();
+      const [data, ov, val] = await Promise.all([
+        api.getTopology(false),
+        api.getCampusOverview().catch(() => null),
+        api.validateTopology().catch(() => null),
+      ]);
       setNodes(data.nodes || []);
       setEdges(data.edges || []);
+      if (ov) setOverview(ov);
+      if (val) setValidation(val);
     } catch (e) {
       console.error(e);
     } finally {
@@ -46,26 +54,40 @@ export const TopologyPage: React.FC = () => {
     setSelectedNode(node.data);
   };
 
+  const connectedLinks = useMemo(() => {
+    if (!selectedNode) return [];
+    return edges.filter((e) => e.source === selectedNode.id || e.target === selectedNode.id);
+  }, [selectedNode, edges]);
+
   return (
-    <div className="h-[calc(100vh-6.5rem)] flex flex-col space-y-4">
+    <div className="h-[calc(100vh-6.5rem)] flex flex-col space-y-3">
       {/* Topology Header Controls */}
-      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-lg px-5 py-3">
         <div className="flex items-center space-x-3">
           <Network className="w-5 h-5 text-cyan-400" />
           <div>
-            <h1 className="text-base font-bold text-white">Interactive Cisco Network Topology</h1>
-            <p className="text-xs text-slate-400">3-Tier Enterprise Architecture: Core Router, L3 Core, Distribution, Access IDF & Servers</p>
+            <h1 className="text-base font-bold text-white">Campus 3-Tier Network Topology</h1>
+            <p className="text-xs text-slate-400">
+              Edge (Router/Firewall) → Core (SW-CORE-01) → Distribution → 6 Dept Access Switches → 6 APs & 250 Student Endpoints
+            </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 mr-2">
+          {validation && (
+            <Badge variant={validation.valid ? 'success' : 'danger'}>
+              {validation.valid
+                ? `VALIDATED (${validation.summary?.devices_checked ?? 0} nodes)`
+                : `${validation.summary?.critical_errors ?? 0} ERRORS`}
+            </Badge>
+          )}
+          <div className="hidden xl:flex items-center space-x-2 text-xs font-mono text-slate-400 mr-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span>Online</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ml-2"></span>
-            <span>Degraded</span>
+            <span>Link Up</span>
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500 ml-2"></span>
-            <span>Trunk Link</span>
+            <span>802.1Q Trunk</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ml-2"></span>
+            <span>Down</span>
           </div>
 
           <button
@@ -78,11 +100,49 @@ export const TopologyPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Campus Infrastructure Summary Strip */}
+      {overview && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-xs font-mono">
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">TOTAL ASSETS</span>
+            <span className="text-white font-bold">{overview.total_devices}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">EDGE / FW</span>
+            <span className="text-cyan-400 font-bold">{overview.routers} RTR / {overview.firewalls} FW</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">CORE / DIST</span>
+            <span className="text-cyan-400 font-bold">{overview.core_switches} / {overview.distribution_switches}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">ACCESS SW</span>
+            <span className="text-emerald-400 font-bold">{overview.access_switches}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">WIRELESS APs</span>
+            <span className="text-indigo-400 font-bold">{overview.wireless_aps}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">SERVERS</span>
+            <span className="text-amber-400 font-bold">{overview.servers}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">ENDPOINTS</span>
+            <span className="text-white font-bold">{overview.student_endpoints}</span>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2">
+            <span className="text-slate-400 block text-[10px]">HEALTHY / OFF</span>
+            <span className="text-emerald-400 font-bold">{overview.online_devices} / {overview.offline_devices}</span>
+          </div>
+        </div>
+      )}
+
       {/* Canvas Area */}
       <div className="flex-1 bg-slate-950 border border-slate-800 rounded-lg relative overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-full text-slate-400 font-mono text-xs">
-            Loading Cisco topology model...
+            Loading Cisco campus topology model...
           </div>
         ) : (
           <ReactFlow
@@ -101,7 +161,7 @@ export const TopologyPage: React.FC = () => {
 
         {/* Selected Node Inspection Drawer */}
         {selectedNode && (
-          <div className="absolute right-4 top-4 w-80 bg-slate-900/95 border border-slate-800 rounded-lg p-4 shadow-2xl backdrop-blur-md font-mono text-xs z-10">
+          <div className="absolute right-4 top-4 w-80 bg-slate-900/95 border border-slate-800 rounded-lg p-4 shadow-2xl backdrop-blur-md font-mono text-xs z-10 max-h-[85%] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
               <div className="flex items-center space-x-2">
                 <Info className="w-4 h-4 text-cyan-400" />
@@ -125,33 +185,42 @@ export const TopologyPage: React.FC = () => {
                 <span className="uppercase">{selectedNode.device_type}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-400">Department:</span>
+                <span>{selectedNode.department || 'Campus Core'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">VLAN:</span>
+                <span>{selectedNode.vlan_id ? `VLAN ${selectedNode.vlan_id}` : 'Trunk / Routed'}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-400">Model:</span>
                 <span>{selectedNode.model}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Operational Status:</span>
+                <span className="text-slate-400">Status:</span>
                 <Badge variant={selectedNode.status === 'online' ? 'success' : 'warning'}>
                   {selectedNode.status}
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">CPU Utilization:</span>
-                <span>{selectedNode.cpu || 14}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Memory Utilization:</span>
-                <span>{selectedNode.memory || 38}%</span>
+                <span className="text-slate-400">CPU / Memory:</span>
+                <span>{selectedNode.cpu || 10}% / {selectedNode.memory || 28}%</span>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
-              <a
-                href={`/devices`}
-                className="text-cyan-400 hover:underline text-[11px]"
-              >
-                View Full Device Configuration →
-              </a>
-            </div>
+            {connectedLinks.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-800">
+                <span className="text-slate-400 block mb-1.5 font-bold">Connected Links ({connectedLinks.length}):</span>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {connectedLinks.map((lk) => (
+                    <div key={lk.id} className="text-[10px] bg-slate-950 border border-slate-800 rounded px-2 py-1 flex justify-between">
+                      <span className="truncate max-w-[175px]">{(lk.data as any)?.name || lk.label}</span>
+                      <span className="text-emerald-400">{String((lk.data as any)?.status || 'up').toUpperCase()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
