@@ -18,8 +18,8 @@ def get_devices(
     vlan_id: Optional[int] = None,
     asset_category: Optional[str] = None,
     layer: Optional[str] = None,
-    limit: int = 500,
-    offset: int = 0,
+    limit: int = Query(default=500, ge=1, le=2000),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(Device)
