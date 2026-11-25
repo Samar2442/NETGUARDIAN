@@ -57,6 +57,9 @@ TABLE_MIGRATIONS = {
         "acknowledged_by": "VARCHAR(50)",
         "closed_at": "DATETIME",
         "source": "VARCHAR(30) DEFAULT 'SIMULATION'",
+        "incident_category": "VARCHAR(20) DEFAULT 'NETWORK'",
+        "security_severity": "VARCHAR(20)",
+        "affected_services": "JSON DEFAULT '[]'",
     },
     "diagnoses": {
         "status": "VARCHAR(30) DEFAULT 'CONFIRMED'",

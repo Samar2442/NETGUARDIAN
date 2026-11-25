@@ -307,8 +307,15 @@ class DigitalTwinEngine:
                 core_id = core_rtr.id if core_rtr else None
 
                 unreachable_devs = []
-                for node in G_sim.nodes:
-                    if core_id and node != core_id and not nx.has_path(G_sim, node, core_id):
+                if core_id and core_id in G_sim:
+                    for node in G_sim.nodes:
+                        if node != core_id and not nx.has_path(G_sim, node, core_id):
+                            dev_obj = db.query(Device).filter(Device.id == node).first()
+                            if dev_obj:
+                                unreachable_devs.append(dev_obj)
+                elif core_id:
+                    # Core itself was removed from G_sim -> all remaining nodes are partitioned from core
+                    for node in G_sim.nodes:
                         dev_obj = db.query(Device).filter(Device.id == node).first()
                         if dev_obj:
                             unreachable_devs.append(dev_obj)

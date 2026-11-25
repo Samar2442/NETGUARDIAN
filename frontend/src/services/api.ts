@@ -191,4 +191,45 @@ export const api = {
     request<any>(targetName ? `/simulator/state?target_name=${encodeURIComponent(targetName)}` : '/simulator/state'),
   compareDigitalTwin: (payload: { scenario_type: string; target_name: string; parameters?: any }) =>
     request<any>('/simulator/compare', { method: 'POST', body: JSON.stringify(payload) }),
+
+  // Milestone 7: Security Operations & Defensive Threat Intelligence
+  getSecurityOverview: () => request<any>('/security/overview'),
+  getSecurityDetections: (params: {
+    severity?: string;
+    detection_type?: string;
+    device?: string;
+    vlan_id?: number;
+    department?: string;
+    status?: string;
+    hours?: number;
+    limit?: number;
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.severity) qs.set('severity', params.severity);
+    if (params.detection_type) qs.set('detection_type', params.detection_type);
+    if (params.device) qs.set('device', params.device);
+    if (params.vlan_id) qs.set('vlan_id', String(params.vlan_id));
+    if (params.department) qs.set('department', params.department);
+    if (params.status) qs.set('status', params.status);
+    qs.set('hours', String(params.hours ?? 24));
+    qs.set('limit', String(params.limit ?? 50));
+    return request<any>(`/security/detections?${qs.toString()}`);
+  },
+  evaluateSecuritySignal: (payload: any) =>
+    request<any>('/security/detections/evaluate', { method: 'POST', body: JSON.stringify(payload) }),
+  markDetectionFalsePositive: (id: string, reason: string) =>
+    request<any>(`/security/detections/${id}/false-positive`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  getSecurityRules: () => request<any[]>('/security/rules'),
+  getVlanSecurityAssessment: () => request<any>('/security/assessments/vlans'),
+  getDeviceSecurityAssessments: (limit = 25) => request<any>(`/security/assessments/devices?limit=${limit}`),
+  getAclAssessment: () => request<any>('/security/assessments/acls'),
+  getFirewallAssessment: () => request<any>('/security/assessments/firewall'),
+  getSecurityIncidents: (limit = 50) => request<any>(`/security/incidents?limit=${limit}`),
+  createSecurityIncident: (payload: any) =>
+    request<any>('/security/incidents', { method: 'POST', body: JSON.stringify(payload) }),
+  getSecurityIncidentEvidence: (incidentId: string) => request<any[]>(`/security/incidents/${incidentId}/evidence`),
+  addSecurityIncidentEvidence: (incidentId: string, payload: any) =>
+    request<any>(`/security/incidents/${incidentId}/evidence`, { method: 'POST', body: JSON.stringify(payload) }),
+  getSecurityIncidentRecommendations: (incidentId: string) =>
+    request<any>(`/security/incidents/${incidentId}/recommendations`),
 };

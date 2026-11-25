@@ -189,6 +189,9 @@ class Incident(Base):
     resolved_at = Column(DateTime, nullable=True)
     closed_at = Column(DateTime, nullable=True)
     source = Column(String(30), default="SIMULATION")
+    incident_category = Column(String(20), default="NETWORK", index=True)  # NETWORK, SECURITY
+    security_severity = Column(String(20), nullable=True)
+    affected_services = Column(JSON, default=list)
 
     events = relationship("Event", backref="incident", lazy="dynamic")
     diagnosis = relationship("Diagnosis", uselist=False, back_populates="incident")
@@ -528,3 +531,64 @@ class ServiceDependency(Base):
     resource_name = Column(String(120), nullable=False)
     dependency_role = Column(String(30), nullable=False, default="PRIMARY")  # PRIMARY, CORE_PATH, REDUNDANT_PATH
     is_critical = Column(Boolean, default=True)
+
+
+class SecurityDetectionRule(Base):
+    """Configurable defensive security detection rule."""
+    __tablename__ = "security_detection_rules"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    rule_id = Column(String(40), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    detection_type = Column(String(50), nullable=False, index=True)
+    severity = Column(String(20), nullable=False, default="MEDIUM")
+    threshold = Column(Integer, nullable=False, default=3)
+    window_seconds = Column(Integer, nullable=False, default=300)
+    cooldown_seconds = Column(Integer, nullable=False, default=120)
+    enabled = Column(Boolean, nullable=False, default=True)
+    description = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+class SecurityDetection(Base):
+    """Defensive security detection record with deduplication and SIMULATION labeling."""
+    __tablename__ = "security_detections"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    detection_type = Column(String(50), nullable=False, index=True)
+    rule_id = Column(String(40), nullable=False, index=True)
+    severity = Column(String(20), nullable=False, index=True)
+    confidence = Column(Float, nullable=False, default=75.0)
+    source_device_id = Column(String(36), ForeignKey("devices.id"), nullable=True, index=True)
+    source_device_name = Column(String(100), nullable=True)
+    related_endpoint = Column(String(100), nullable=True)
+    vlan_id = Column(Integer, nullable=True, index=True)
+    department = Column(String(100), nullable=True, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    last_seen_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    occurrence_count = Column(Integer, nullable=False, default=1)
+    supporting_evidence = Column(JSON, default=list)
+    status = Column(String(30), nullable=False, default="OPEN", index=True)
+    false_positive_reason = Column(String(255), nullable=True)
+    data_source = Column(String(30), nullable=False, default="SIMULATION")
+    classification = Column(String(30), nullable=False, default="SIMULATION")
+    event_id = Column(String(36), ForeignKey("events.id"), nullable=True)
+    incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=True, index=True)
+
+
+class SecurityEvidence(Base):
+    """Append-only security incident evidence record with SHA-256 integrity hash."""
+    __tablename__ = "security_evidence"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=False, index=True)
+    source_detection_id = Column(String(36), ForeignKey("security_detections.id"), nullable=True)
+    source_device_id = Column(String(36), ForeignKey("devices.id"), nullable=True)
+    source_device_name = Column(String(100), nullable=True)
+    evidence_type = Column(String(50), nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    description = Column(Text, nullable=False)
+    integrity_hash = Column(String(64), nullable=False)
+    collection_method = Column(String(50), nullable=False, default="AUTOMATED_SIMULATION")
+    data_classification = Column(String(30), nullable=False, default="SIMULATION")
+    collected_by = Column(String(50), nullable=False, default="system")

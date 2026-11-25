@@ -22,6 +22,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { CampusInventoryPage } from './pages/CampusInventoryPage';
 import { FaultSimulationPage } from './pages/FaultSimulationPage';
 import { ServicesSlaPage } from './pages/ServicesSlaPage';
+import { SecurityOperationsPage } from './pages/SecurityOperationsPage';
 
 export const App: React.FC = () => {
   const { setWsConnected } = useAppStore();
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
           <Route path="fault-simulation" element={<FaultSimulationPage />} />
           <Route path="incidents" element={<IncidentsPage />} />
           <Route path="services" element={<ServicesSlaPage />} />
+          <Route path="security" element={<SecurityOperationsPage />} />
           <Route path="diagnostics" element={<RcaPage />} />
           <Route path="simulator" element={<DigitalTwinPage />} />
           <Route path="remediation" element={<RemediationPage />} />

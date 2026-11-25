@@ -27,6 +27,9 @@ from app.models.base import (
     IncidentEscalation,
     CampusService,
     ServiceDependency,
+    SecurityDetectionRule,
+    SecurityDetection,
+    SecurityEvidence,
     generate_uuid
 )
 
@@ -59,5 +62,8 @@ __all__ = [
     "IncidentEscalation",
     "CampusService",
     "ServiceDependency",
+    "SecurityDetectionRule",
+    "SecurityDetection",
+    "SecurityEvidence",
     "generate_uuid"
 ]
