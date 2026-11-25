@@ -56,9 +56,26 @@ class Settings(BaseSettings):
     ALLOW_PRODUCTION_EXECUTION: bool = False
     AUTHORIZED_LAB_DEVICES: List[str] = Field(default_factory=list)
 
-    # Monitoring intervals in seconds
+    # Monitoring & Telemetry Simulation Settings (Milestone 4)
     MONITORING_INTERVAL_SECONDS: int = 10
     METRIC_RETENTION_HOURS: int = 72
+    TELEMETRY_ENABLED: bool = True
+    TELEMETRY_POLLING_INTERVAL_SECONDS: int = 5
+    TELEMETRY_RETENTION_HOURS: int = 24
+    TELEMETRY_MAX_ACTIVE_FAULTS: int = 10
+    TELEMETRY_MAX_FAULT_DURATION_SECONDS: int = 3600
+    THRESHOLD_CPU_WARN: float = 75.0
+    THRESHOLD_CPU_CRIT: float = 90.0
+    THRESHOLD_MEM_WARN: float = 80.0
+    THRESHOLD_MEM_CRIT: float = 90.0
+    THRESHOLD_UTIL_WARN: float = 75.0
+    THRESHOLD_UTIL_CRIT: float = 90.0
+    THRESHOLD_LOSS_WARN: float = 2.0
+    THRESHOLD_LOSS_CRIT: float = 5.0
+    THRESHOLD_LATENCY_WARN: float = 100.0
+    THRESHOLD_LATENCY_CRIT: float = 250.0
+    THRESHOLD_TEMP_WARN: float = 65.0
+    THRESHOLD_TEMP_CRIT: float = 80.0
 
     # CORS – list of allowed frontend origins
     BACKEND_CORS_ORIGINS: List[str] = Field(

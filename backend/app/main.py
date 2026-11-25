@@ -28,6 +28,10 @@ from app.api.v1.training import router as training_router
 from app.api.v1.drift import router as drift_router
 from app.api.v1.audit import router as audit_router
 from app.api.v1.campus_inventory import router as campus_inventory_router
+from app.api.v1.telemetry import router as telemetry_router
+from app.api.v1.events import router as events_router
+from app.api.v1.simulation import router as simulation_router
+from app.services.telemetry_scheduler import telemetry_scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("netguardian")
@@ -70,10 +74,11 @@ async def lifespan(app: FastAPI):
     worker_task = None
     import os
     if not os.getenv("TESTING"):
-        worker_task = asyncio.create_task(background_monitoring_worker())
+        telemetry_scheduler.start()
     
     yield
     
+    await telemetry_scheduler.stop()
     if worker_task:
         worker_task.cancel()
     logger.info("[*] NetGuardian Backend stopped.")
@@ -112,6 +117,9 @@ app.include_router(training_router, prefix=settings.API_V1_STR)
 app.include_router(drift_router, prefix=settings.API_V1_STR)
 app.include_router(audit_router, prefix=settings.API_V1_STR)
 app.include_router(campus_inventory_router, prefix=settings.API_V1_STR)
+app.include_router(telemetry_router, prefix=settings.API_V1_STR)
+app.include_router(events_router, prefix=settings.API_V1_STR)
+app.include_router(simulation_router, prefix=settings.API_V1_STR)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

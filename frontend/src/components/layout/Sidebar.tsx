@@ -17,6 +17,7 @@ import {
   FileText,
   Settings,
   Users,
+  Flame,
 } from 'lucide-react';
 
 const navItems = [
@@ -28,6 +29,7 @@ const navItems = [
   { name: 'VLAN Management', path: '/vlans', icon: Layers },
   { name: 'Routing', path: '/routing', icon: GitBranch },
   { name: 'Monitoring', path: '/monitoring', icon: Activity },
+  { name: 'Fault Simulation', path: '/fault-simulation', icon: Flame },
   { name: 'Incidents', path: '/incidents', icon: AlertOctagon },
   { name: 'Root-Cause Analysis', path: '/diagnostics', icon: SearchCode },
   { name: 'Digital Twin', path: '/simulator', icon: Box },

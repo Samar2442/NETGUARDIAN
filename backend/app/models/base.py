@@ -144,10 +144,17 @@ class Event(Base):
     source_id = Column(String(36), nullable=True, index=True)
     source_name = Column(String(100), nullable=False)
     event_type = Column(String(100), nullable=False, index=True)  # INTERFACE_DOWN, VLAN_MISSING, OSPF_ADJACENCY_DOWN, etc.
+    event_code = Column(String(60), nullable=True)
     severity = Column(String(20), default="medium", index=True)  # critical, high, medium, low, info
     message = Column(Text, nullable=False)
     details = Column(JSON, default=dict)
     raw_payload = Column(Text, nullable=True)
+    device_id = Column(String(36), nullable=True, index=True)
+    interface_id = Column(String(36), nullable=True, index=True)
+    vlan_id = Column(Integer, nullable=True, index=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    acknowledged = Column(Boolean, default=False)
+    resolved = Column(Boolean, default=False)
     is_correlated = Column(Boolean, default=False, index=True)
     incident_id = Column(String(36), ForeignKey("incidents.id"), nullable=True, index=True)
 
@@ -168,7 +175,10 @@ class Incident(Base):
     affected_endpoints_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    acknowledged_at = Column(DateTime, nullable=True)
+    acknowledged_by = Column(String(50), nullable=True)
     resolved_at = Column(DateTime, nullable=True)
+    source = Column(String(30), default="SIMULATION")
 
     events = relationship("Event", backref="incident", lazy="dynamic")
     diagnosis = relationship("Diagnosis", uselist=False, back_populates="incident")
@@ -371,3 +381,64 @@ class ITPersonnel(Base):
     email = Column(String(150), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+class DeviceTelemetry(Base):
+    """Time-series simulated telemetry snapshot for a campus network device."""
+    __tablename__ = "device_telemetry"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    device_id = Column(String(36), ForeignKey("devices.id"), nullable=False, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    cpu_usage_pct = Column(Float, nullable=False)
+    memory_usage_pct = Column(Float, nullable=False)
+    temperature_celsius = Column(Float, nullable=False, default=38.0)
+    uptime_seconds = Column(Integer, nullable=False, default=0)
+    availability_pct = Column(Float, nullable=False, default=100.0)
+    latency_ms = Column(Float, nullable=False, default=1.5)
+    packet_loss_pct = Column(Float, nullable=False, default=0.0)
+    status = Column(String(20), nullable=False, default="online")
+    telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
+    simulation_run_id = Column(String(64), nullable=True, index=True)
+
+
+class InterfaceTelemetry(Base):
+    """Time-series simulated telemetry snapshot for a network interface."""
+    __tablename__ = "interface_telemetry"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    interface_id = Column(String(36), ForeignKey("interfaces.id"), nullable=False, index=True)
+    device_id = Column(String(36), ForeignKey("devices.id"), nullable=False, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    inbound_bps = Column(Float, nullable=False, default=0.0)
+    outbound_bps = Column(Float, nullable=False, default=0.0)
+    utilization_pct = Column(Float, nullable=False, default=0.0)
+    input_errors = Column(Integer, nullable=False, default=0)
+    output_errors = Column(Integer, nullable=False, default=0)
+    input_discards = Column(Integer, nullable=False, default=0)
+    output_discards = Column(Integer, nullable=False, default=0)
+    operational_status = Column(String(20), nullable=False, default="up")
+    duplex = Column(String(10), nullable=False, default="full")
+    telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
+    simulation_run_id = Column(String(64), nullable=True, index=True)
+
+
+class FaultScenario(Base):
+    """Controlled network fault simulation record (never modifies real hardware)."""
+    __tablename__ = "fault_scenarios"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    scenario_name = Column(String(120), nullable=False)
+    scenario_type = Column(String(40), nullable=False, index=True)
+    target_device_id = Column(String(36), ForeignKey("devices.id"), nullable=False, index=True)
+    target_interface_id = Column(String(36), ForeignKey("interfaces.id"), nullable=True)
+    target_link_id = Column(String(36), ForeignKey("network_links.id"), nullable=True)
+    severity = Column(String(20), nullable=False, default="HIGH")
+    parameters = Column(JSON, default=dict)
+    status = Column(String(20), nullable=False, default="ACTIVE", index=True)  # ACTIVE, RECOVERED
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    ended_at = Column(DateTime, nullable=True)
+    max_duration_seconds = Column(Integer, nullable=False, default=1800)
+    created_by = Column(String(50), nullable=False)
+    simulation_run_id = Column(String(64), nullable=True)
+    telemetry_source = Column(String(20), nullable=False, default="SIMULATION")

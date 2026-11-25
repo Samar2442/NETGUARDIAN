@@ -121,4 +121,35 @@ export const api = {
     qs.set('offset', String(params.offset ?? 0));
     return request<any[]>(`/campus/inventory/assignments?${qs.toString()}`);
   },
+
+  // Telemetry, Events & Fault Simulation (Milestone 4)
+  getTelemetryOverview: () => request<any>('/telemetry/overview'),
+  getTelemetryDevices: (params: { search?: string; status?: string; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.search) qs.set('search', params.search);
+    if (params.status) qs.set('status', params.status);
+    qs.set('limit', String(params.limit ?? 50));
+    return request<any[]>(`/telemetry/devices?${qs.toString()}`);
+  },
+  getDeviceTelemetryHistory: (deviceId: string, minutes = 60) =>
+    request<any>(`/telemetry/devices/${deviceId}/history?minutes=${minutes}`),
+  getTelemetryInterfaces: (limit = 50) => request<any[]>(`/telemetry/interfaces?limit=${limit}`),
+  getTelemetryVlans: () => request<any[]>('/telemetry/vlans'),
+  getTelemetryHealthHistory: (limit = 24) => request<any>(`/telemetry/health?limit=${limit}`),
+  collectTelemetryNow: () => request<any>('/telemetry/collect', { method: 'POST' }),
+  getFilteredEvents: (params: { severity?: string; search?: string; limit?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.severity) qs.set('severity', params.severity);
+    if (params.search) qs.set('search', params.search);
+    qs.set('limit', String(params.limit ?? 50));
+    return request<any[]>(`/events?${qs.toString()}`);
+  },
+  acknowledgeEvent: (eventId: string) => request<any>(`/events/${eventId}/acknowledge`, { method: 'POST' }),
+  acknowledgeIncident: (incidentId: string) => request<any>(`/incidents/${incidentId}/acknowledge`, { method: 'POST' }),
+  resolveIncident: (incidentId: string) => request<any>(`/incidents/${incidentId}/resolve`, { method: 'POST' }),
+  getSimulationScenarios: () => request<any[]>('/simulation/scenarios'),
+  getSimulationFaults: () => request<any[]>('/simulation/faults'),
+  getSimulationStatus: () => request<any>('/simulation/status'),
+  injectSimulationFault: (data: any) => request<any>('/simulation/faults', { method: 'POST', body: JSON.stringify(data) }),
+  recoverSimulationFault: (faultId: string) => request<any>(`/simulation/faults/${faultId}/recover`, { method: 'POST' }),
 };

@@ -34,6 +34,20 @@ TABLE_MIGRATIONS = {
         "utilization_pct": "FLOAT DEFAULT 12.0",
         "last_state_change": "DATETIME",
     },
+    "events": {
+        "event_code": "VARCHAR(60)",
+        "device_id": "VARCHAR(36)",
+        "interface_id": "VARCHAR(36)",
+        "vlan_id": "INTEGER",
+        "correlation_id": "VARCHAR(64)",
+        "acknowledged": "BOOLEAN DEFAULT 0",
+        "resolved": "BOOLEAN DEFAULT 0",
+    },
+    "incidents": {
+        "acknowledged_at": "DATETIME",
+        "acknowledged_by": "VARCHAR(50)",
+        "source": "VARCHAR(30) DEFAULT 'SIMULATION'",
+    },
 }
 
 

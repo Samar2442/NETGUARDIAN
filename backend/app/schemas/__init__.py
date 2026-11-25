@@ -202,9 +202,12 @@ class EventResponse(BaseModel):
     source_id: Optional[str] = None
     source_name: str
     event_type: str
+    event_code: Optional[str] = None
     severity: str
     message: str
     details: Dict[str, Any] = {}
+    acknowledged: bool = False
+    resolved: bool = False
     is_correlated: bool
     incident_id: Optional[str] = None
 
@@ -273,7 +276,10 @@ class IncidentResponse(BaseModel):
     affected_endpoints_count: int = 0
     created_at: datetime
     updated_at: datetime
+    acknowledged_at: Optional[datetime] = None
+    acknowledged_by: Optional[str] = None
     resolved_at: Optional[datetime] = None
+    source: str = "SIMULATION"
     diagnosis: Optional[DiagnosisResponse] = None
     remediations: List[RemediationResponse] = []
 

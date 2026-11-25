@@ -19,6 +19,9 @@ from app.models.base import (
     Student,
     Faculty,
     ITPersonnel,
+    DeviceTelemetry,
+    InterfaceTelemetry,
+    FaultScenario,
     generate_uuid
 )
 
@@ -43,5 +46,8 @@ __all__ = [
     "Student",
     "Faculty",
     "ITPersonnel",
+    "DeviceTelemetry",
+    "InterfaceTelemetry",
+    "FaultScenario",
     "generate_uuid"
 ]
