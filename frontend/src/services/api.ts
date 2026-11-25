@@ -249,4 +249,5 @@ export const api = {
     request<any>(`/integrations/labs/servers/${serverId}/discover`, { method: 'POST' }),
   syncLabServer: (serverId: string, targetId: string) =>
     request<any>(`/integrations/labs/servers/${serverId}/sync`, { method: 'POST', body: JSON.stringify({ target_id: targetId }) }),
+  getIntegrationValidationReport: () => request<any>('/integrations/validation-report'),
 };

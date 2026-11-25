@@ -10,6 +10,7 @@ from app.services.device_connection_manager import DeviceConnectionManager
 from app.services.real_device_telemetry import RealDeviceTelemetryService
 from app.services.syslog_collector import SyslogCollector
 from app.services.virtual_lab_manager import VirtualLabManager
+from app.services.integration_validator import IntegrationValidator
 
 router = APIRouter(prefix="/integrations", tags=["Network Integrations"])
 
@@ -373,3 +374,11 @@ def sync_lab_server(
         return VirtualLabManager.sync_project_or_lab(db, srv, payload.target_id, current_user.username)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e)[:200])
+
+
+@router.get("/validation-report")
+def get_integration_validation_report(
+    current_user: User = Depends(require_viewer),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    return IntegrationValidator.build_validation_report(db)

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
+from app.core.config import settings
 from app.models import Device, DeviceTelemetry, InterfaceTelemetry, NetworkInterface
 
 
@@ -9,6 +10,23 @@ class TelemetryNormalizer:
     Normalizes SIMULATION, LAB, and PRODUCTION device/interface metrics
     into DeviceTelemetry & InterfaceTelemetry with explicit source & quality tags.
     """
+
+    @staticmethod
+    def classify_freshness(
+        latest_timestamp: Optional[datetime],
+        device_status: Optional[str] = None,
+        threshold_seconds: Optional[int] = None,
+    ) -> str:
+        if (device_status or "").lower() == "unknown":
+            return "UNKNOWN"
+        if latest_timestamp is None:
+            return "MISSING"
+        if (device_status or "").lower() == "offline":
+            return "STALE"
+        limit = threshold_seconds if threshold_seconds is not None else settings.TELEMETRY_FRESHNESS_SECONDS
+        ts = latest_timestamp.replace(tzinfo=timezone.utc) if latest_timestamp.tzinfo is None else latest_timestamp
+        age = (datetime.now(timezone.utc) - ts).total_seconds()
+        return "FRESH" if age <= limit else "STALE"
 
     @staticmethod
     def record_device_metrics(

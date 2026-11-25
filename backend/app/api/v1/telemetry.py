@@ -16,6 +16,7 @@ from app.models import (
     VLAN,
 )
 from app.services.telemetry_engine import TelemetryEngine
+from app.services.telemetry_normalizer import TelemetryNormalizer
 from app.core.dependencies import require_engineer, require_viewer
 
 router = APIRouter(prefix="/telemetry", tags=["Telemetry"])
@@ -68,6 +69,7 @@ def list_device_telemetry(
     device_type: Optional[str] = None,
     department: Optional[str] = None,
     status: Optional[str] = None,
+    source: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = Query(default=50, ge=1, le=300),
     offset: int = Query(default=0, ge=0),
@@ -81,32 +83,41 @@ def list_device_telemetry(
         query = query.filter(Device.department == department)
     if status:
         query = query.filter(Device.status == status)
+    if source:
+        query = query.filter(Device.environment == source.upper())
     if search:
         query = query.filter(Device.hostname.ilike(f"%{search.strip()}%"))
 
     devs = query.order_by(Device.hostname.asc()).offset(offset).limit(limit).all()
     results = []
     for d in devs:
-        latest = (
-            db.query(DeviceTelemetry)
-            .filter(DeviceTelemetry.device_id == d.id)
-            .order_by(DeviceTelemetry.timestamp.desc())
-            .first()
+        t_q = db.query(DeviceTelemetry).filter(DeviceTelemetry.device_id == d.id)
+        if source:
+            t_q = t_q.filter(DeviceTelemetry.telemetry_source == source.upper())
+        elif d.environment in ("LAB", "PRODUCTION"):
+            t_q = t_q.filter(DeviceTelemetry.telemetry_source == d.environment)
+        latest = t_q.order_by(DeviceTelemetry.timestamp.desc()).first()
+
+        freshness = TelemetryNormalizer.classify_freshness(
+            latest.timestamp if latest else None,
+            device_status=d.status,
         )
         results.append({
             "device_id": d.id,
             "hostname": d.hostname,
             "device_type": d.device_type,
             "department": d.department,
+            "environment": d.environment or "SIMULATION",
             "management_ip": d.management_ip,
-            "cpu_usage_pct": latest.cpu_usage_pct if latest else d.cpu_percent,
-            "memory_usage_pct": latest.memory_usage_pct if latest else d.memory_percent,
-            "availability_pct": latest.availability_pct if latest else (100.0 if d.status != "offline" else 0.0),
-            "latency_ms": latest.latency_ms if latest else 1.5,
-            "packet_loss_pct": latest.packet_loss_pct if latest else 0.0,
+            "cpu_usage_pct": latest.cpu_usage_pct if (latest and d.status != "offline") else None,
+            "memory_usage_pct": latest.memory_usage_pct if (latest and d.status != "offline") else None,
+            "availability_pct": (latest.availability_pct if latest else None) if d.status != "offline" else 0.0,
+            "latency_ms": latest.latency_ms if (latest and d.status != "offline") else None,
+            "packet_loss_pct": latest.packet_loss_pct if (latest and d.status != "offline") else None,
             "status": d.status,
+            "freshness_status": freshness,
             "last_seen": d.last_seen.isoformat() if d.last_seen else None,
-            "telemetry_source": "SIMULATION",
+            "telemetry_source": latest.telemetry_source if latest else (d.environment or "SIMULATION"),
         })
     return results
 

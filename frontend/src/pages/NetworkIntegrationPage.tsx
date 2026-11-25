@@ -10,21 +10,24 @@ export const NetworkIntegrationPage: React.FC = () => {
   const [syslogEvents, setSyslogEvents] = useState<any[]>([]);
   const [labServers, setLabServers] = useState<any[]>([]);
   const [devices, setDevices] = useState<any[]>([]);
+  const [validationReport, setValidationReport] = useState<any | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   const loadData = async () => {
-    const [pr, th, sy, lb, dv] = await Promise.all([
+    const [pr, th, sy, lb, dv, vr] = await Promise.all([
       api.getIntegrationProfiles().catch(() => ({ items: [] })),
       api.getRealTelemetryHealth().catch(() => null),
       api.getSyslogEvents(20).catch(() => []),
       api.getLabServers().catch(() => []),
       api.getDevices().catch(() => []),
+      api.getIntegrationValidationReport().catch(() => null),
     ]);
     setProfiles(pr?.items || []);
     setTelemetryHealth(th);
     setSyslogEvents(sy || []);
     setLabServers(lb || []);
     setDevices(dv || []);
+    setValidationReport(vr);
   };
 
   useEffect(() => {
@@ -64,6 +67,26 @@ export const NetworkIntegrationPage: React.FC = () => {
         <div className="p-3 rounded bg-slate-900 border border-cyan-700/50 text-xs font-mono text-cyan-300 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{statusMsg}</span>
+        </div>
+      )}
+
+      {validationReport?.integrations && (
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+          <div className="text-xs font-mono uppercase text-slate-300 font-bold mb-2">
+            Integration Validation Status (Honest Live State)
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+            {Object.entries(validationReport.integrations).map(([key, info]: [string, any]) => (
+              <div key={key} className="p-2.5 rounded bg-slate-950 border border-slate-800">
+                <div className="text-slate-400">{key}</div>
+                <div className="mt-1">
+                  <Badge variant={info.status === 'CONNECTED' || info.status === 'VALIDATED' ? 'success' : 'neutral'}>
+                    {info.status}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -34,9 +34,14 @@ class PredictiveAnalyticsService:
             return None
 
         cutoff = PredictiveAnalyticsService._cutoff(hours)
+        src_env = (dev.environment or "SIMULATION").upper()
         rows = (
             db.query(DeviceTelemetry)
-            .filter(DeviceTelemetry.device_id == dev.id, DeviceTelemetry.timestamp >= cutoff)
+            .filter(
+                DeviceTelemetry.device_id == dev.id,
+                DeviceTelemetry.timestamp >= cutoff,
+                DeviceTelemetry.telemetry_source == src_env,
+            )
             .order_by(DeviceTelemetry.timestamp.asc())
             .limit(500)
             .all()
@@ -50,7 +55,7 @@ class PredictiveAnalyticsService:
                 "hostname": dev.hostname,
                 "status": "INSUFFICIENT_DATA",
                 "classification": "INSUFFICIENT_DATA",
-                "data_source": "SIMULATION",
+                "data_source": src_env,
                 "analysis_period_hours": hours,
                 "sample_count": n,
                 "last_sample_timestamp": last_ts,

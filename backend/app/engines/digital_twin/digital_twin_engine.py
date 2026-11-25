@@ -187,6 +187,13 @@ class DigitalTwinEngine:
 
         if telem_count == 0 and (target_dev and target_dev.status == "unknown"):
             classification = "UNKNOWN"
+        elif target_dev and target_dev.environment in ("LAB", "PRODUCTION"):
+            # Prevent synthetic SIMULATION recoveries from verifying physical/lab recovery
+            real_telem = db.query(DeviceTelemetry).filter(
+                DeviceTelemetry.device_id == target_dev.id,
+                DeviceTelemetry.telemetry_source == target_dev.environment,
+            ).count()
+            classification = "OBSERVED" if (real_telem > 0 and target_dev.status == "online") else "UNKNOWN"
         elif active_faults == 0 and (resolved_remediations > 0 or recovered_faults > 0):
             classification = "RECOVERY_VERIFIED"
         elif telem_count > 0:

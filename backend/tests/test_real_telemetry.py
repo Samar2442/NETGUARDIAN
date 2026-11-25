@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 import pytest
 from app.models import Device, DeviceTelemetry
-from app.services.snmpv3_collector import SNMPAuthError, SNMPv3Collector
+from app.services.snmpv3_collector import SNMPAuthError, SNMPv3Collector, build_usm_user_data
 from app.services.telemetry_normalizer import TelemetryNormalizer
 
 
@@ -70,6 +70,13 @@ def test_snmpv3_polling_normalization_and_failures(client, db):
         err_res = client.post(f"/api/v1/integrations/telemetry/poll/{prof_id}", headers=e_h)
         assert err_res.status_code == 200
         assert err_res.json()["success"] is False
+        assert "AuthSecretKey99!" not in str(err_res.json())
+
+    # Production SNMPv3 requires authPriv (encryption key) and real UsmUserData rejects missing priv_key
+    with pytest.raises(SNMPAuthError):
+        build_usm_user_data("snmpuser", "AuthKey123!", None, "SHA", None, environment="PRODUCTION")
+    usm = build_usm_user_data("snmpuser", "AuthKey123!", "PrivKey456!", "SHA256", "AES128", environment="LAB")
+    assert usm.userName == "snmpuser"
 
     # Health & stale detection
     assert client.get("/api/v1/integrations/telemetry/health", headers=v_h).status_code == 200
