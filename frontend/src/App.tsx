@@ -19,6 +19,7 @@ import { TrainingLabPage } from './pages/TrainingLabPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CampusInventoryPage } from './pages/CampusInventoryPage';
 
 export const App: React.FC = () => {
   const { setWsConnected } = useAppStore();
@@ -51,6 +52,7 @@ export const App: React.FC = () => {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<OverviewDashboard />} />
           <Route path="topology" element={<TopologyPage />} />
+          <Route path="campus-inventory" element={<CampusInventoryPage />} />
           <Route path="devices" element={<DevicesPage />} />
           <Route path="interfaces" element={<InterfacesPage />} />
           <Route path="vlans" element={<VlanPage />} />

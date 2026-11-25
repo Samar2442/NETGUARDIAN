@@ -61,6 +61,16 @@ def seed_campus_network(db: Session, force_reset: bool = False) -> Dict[str, int
     - Preserves User and AuditLog records during explicit resets.
     """
     if force_reset:
+        # Unlink students temporarily so Device deletion never violates FK constraints
+        from app.models import Student
+        existing_student_links = {
+            s.student_id: f"{s.department}-PC-{int(s.student_id[-3:]):03d}"
+            for s in db.query(Student).all()
+            if s.device_id and s.student_id[-3:].isdigit()
+        }
+        db.query(Student).update({Student.device_id: None})
+        db.commit()
+
         db.query(RemediationProposal).delete()
         db.query(Diagnosis).delete()
         db.query(Event).delete()
@@ -73,6 +83,8 @@ def seed_campus_network(db: Session, force_reset: bool = False) -> Dict[str, int
         db.query(Device).delete()
         db.query(VLAN).delete()
         db.commit()
+    else:
+        existing_student_links = {}
 
     # Check idempotency: if campus core already exists and not force_reset, do not duplicate
     existing_core = db.query(Device).filter(Device.hostname == "SW-CORE-01").first()
@@ -429,6 +441,15 @@ def seed_campus_network(db: Session, force_reset: bool = False) -> Dict[str, int
             avg_latency_ms=1.2,
             avg_packet_loss_pct=0.0,
         ))
+        db.commit()
+
+    # Re-link existing students if this was a force_reset
+    if force_reset and existing_student_links:
+        from app.models import Student
+        for s in db.query(Student).all():
+            target_ep = existing_student_links.get(s.student_id)
+            if target_ep and target_ep in dev_map:
+                s.device_id = dev_map[target_ep].id
         db.commit()
 
     return {

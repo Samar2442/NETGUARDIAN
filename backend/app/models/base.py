@@ -319,3 +319,55 @@ class TrainingSession(Base):
     accuracy_score = Column(Float, default=0.0)
     overall_score = Column(Float, default=0.0)
     feedback = Column(Text, nullable=True)
+
+
+class Student(Base):
+    """Synthetic university student identity record (never real PII)."""
+    __tablename__ = "students"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    student_id = Column(String(32), unique=True, nullable=False, index=True)
+    full_name = Column(String(120), nullable=False)
+    department = Column(String(50), nullable=False, index=True)  # CSE, IT, ECE
+    academic_year = Column(Integer, nullable=False, default=1)
+    semester = Column(Integer, nullable=False, default=1)
+    enrollment_status = Column(String(30), nullable=False, default="ACTIVE", index=True)
+    email = Column(String(150), unique=True, nullable=False, index=True)
+    device_id = Column(String(36), ForeignKey("devices.id"), unique=True, nullable=True, index=True)
+    enrollment_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    device = relationship("Device", foreign_keys=[device_id])
+
+
+class Faculty(Base):
+    """Synthetic university faculty member record (never real PII)."""
+    __tablename__ = "faculty"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    faculty_id = Column(String(32), unique=True, nullable=False, index=True)
+    full_name = Column(String(120), nullable=False)
+    department = Column(String(50), nullable=False, index=True)  # CSE, IT, ECE
+    designation = Column(String(80), nullable=False)
+    email = Column(String(150), unique=True, nullable=False, index=True)
+    employment_status = Column(String(30), nullable=False, default="ACTIVE", index=True)
+    office_location = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+class ITPersonnel(Base):
+    """Synthetic IT & Network Operations personnel record (not application login accounts)."""
+    __tablename__ = "it_personnel"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    employee_id = Column(String(32), unique=True, nullable=False, index=True)
+    full_name = Column(String(120), nullable=False)
+    job_title = Column(String(80), nullable=False)
+    team = Column(String(60), nullable=False)
+    access_classification = Column(String(40), nullable=False)
+    employment_status = Column(String(30), nullable=False, default="ACTIVE", index=True)
+    email = Column(String(150), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

@@ -98,4 +98,27 @@ export const api = {
   // Drift & Audit
   getDeviceDrift: (deviceId: string) => request<any>(`/drift/compare/${deviceId}`),
   getAuditLogs: (limit = 100) => request<any[]>(`/audit?limit=${limit}`),
+
+  // Campus Inventory & Identity
+  getCampusInventoryOverview: () => request<any>('/campus/inventory/overview'),
+  validateCampusInventory: () => request<any>('/campus/inventory/validate'),
+  getCampusStudents: (params: { department?: string; search?: string; limit?: number; offset?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.department) qs.set('department', params.department);
+    if (params.search) qs.set('search', params.search);
+    qs.set('limit', String(params.limit ?? 25));
+    qs.set('offset', String(params.offset ?? 0));
+    return request<any[]>(`/campus/students?${qs.toString()}`);
+  },
+  getStudentNetwork: (studentId: string) => request<any>(`/campus/students/${studentId}/network`),
+  getCampusFaculty: (department?: string) =>
+    request<any[]>(`/campus/faculty${department ? `?department=${department}` : ''}`),
+  getCampusITPersonnel: () => request<any[]>('/campus/it-personnel'),
+  getCampusAssignments: (params: { department?: string; limit?: number; offset?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.department) qs.set('department', params.department);
+    qs.set('limit', String(params.limit ?? 25));
+    qs.set('offset', String(params.offset ?? 0));
+    return request<any[]>(`/campus/inventory/assignments?${qs.toString()}`);
+  },
 };

@@ -16,6 +16,9 @@ from app.models.base import (
     AuditLog,
     TrainingScenario,
     TrainingSession,
+    Student,
+    Faculty,
+    ITPersonnel,
     generate_uuid
 )
 
@@ -37,5 +40,8 @@ __all__ = [
     "AuditLog",
     "TrainingScenario",
     "TrainingSession",
+    "Student",
+    "Faculty",
+    "ITPersonnel",
     "generate_uuid"
 ]

@@ -102,14 +102,16 @@ def seed_database(db=None):
 
         print("[*] Seeding University Campus Network (3 VLANs, 3-Tier Infra, 250 Endpoints)...")
         from app.database.campus_seed import seed_campus_network
+        from app.seeders.campus_inventory_seed import seed_campus_inventory
         summary = seed_campus_network(db, force_reset=False)
+        inv_summary = seed_campus_inventory(db)
 
         audit = AuditLog(
             username="system",
             action="SYSTEM_INIT",
             resource_type="SYSTEM",
             resource_id="NETGUARDIAN-CAMPUS-INIT",
-            details={"message": "NetGuardian University Campus Network initialized.", **summary},
+            details={"message": "NetGuardian University Campus Network & Inventory initialized.", **summary, **inv_summary},
             status="SUCCESS"
         )
         db.add(audit)

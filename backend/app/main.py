@@ -27,6 +27,7 @@ from app.api.v1.remediation import router as remediation_router
 from app.api.v1.training import router as training_router
 from app.api.v1.drift import router as drift_router
 from app.api.v1.audit import router as audit_router
+from app.api.v1.campus_inventory import router as campus_inventory_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("netguardian")
@@ -110,6 +111,7 @@ app.include_router(remediation_router, prefix=settings.API_V1_STR)
 app.include_router(training_router, prefix=settings.API_V1_STR)
 app.include_router(drift_router, prefix=settings.API_V1_STR)
 app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(campus_inventory_router, prefix=settings.API_V1_STR)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

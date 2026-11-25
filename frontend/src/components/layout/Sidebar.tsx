@@ -16,11 +16,13 @@ import {
   LineChart,
   FileText,
   Settings,
+  Users,
 } from 'lucide-react';
 
 const navItems = [
   { name: 'Overview', path: '/', icon: LayoutDashboard },
   { name: 'Network Topology', path: '/topology', icon: Network },
+  { name: 'Campus Inventory', path: '/campus-inventory', icon: Users },
   { name: 'Devices', path: '/devices', icon: Server },
   { name: 'Interfaces', path: '/interfaces', icon: Cpu },
   { name: 'VLAN Management', path: '/vlans', icon: Layers },
