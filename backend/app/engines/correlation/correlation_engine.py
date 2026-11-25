@@ -1,7 +1,14 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Set
 from datetime import datetime, timezone, timedelta
+import networkx as nx
 from sqlalchemy.orm import Session
-from app.models import Event, Incident, IncidentActivity
+from app.models import (
+    Event,
+    Incident,
+    IncidentActivity,
+    NetworkLink,
+    ServiceDependency,
+)
 
 _SEV_TO_PRIORITY = {
     "CRITICAL": "P1",
@@ -127,3 +134,151 @@ class CorrelationEngine:
             event.incident_id = new_incident.id
             db.commit()
             return new_incident
+
+    @staticmethod
+    def analyze_incident_correlations(db: Session, incident: Incident) -> Dict[str, Any]:
+        """
+        Multi-event correlation & timeline reconstruction for an incident.
+        Uses event type, device/interface/VLAN identity, network topology,
+        timestamps, and service dependencies to separate related events from
+        independent failures.
+        """
+        linked_events = incident.events.order_by(Event.timestamp.asc()).all()
+        ref_time = incident.created_at or datetime.now(timezone.utc)
+        if ref_time.tzinfo is None:
+            ref_time = ref_time.replace(tzinfo=timezone.utc)
+
+        window_start = ref_time - timedelta(seconds=CorrelationEngine.CORRELATION_WINDOW_SECONDS)
+        window_end = ref_time + timedelta(seconds=CorrelationEngine.CORRELATION_WINDOW_SECONDS * 2)
+
+        nearby_events = (
+            db.query(Event)
+            .filter(
+                Event.timestamp >= window_start,
+                Event.timestamp <= window_end,
+                Event.resolved == False,
+            )
+            .order_by(Event.timestamp.asc())
+            .limit(200)
+            .all()
+        )
+
+        # Build topology adjacency
+        links = db.query(NetworkLink).all()
+        G = nx.Graph()
+        for l in links:
+            if l.source_device_id and l.target_device_id:
+                G.add_edge(str(l.source_device_id), str(l.target_device_id), link_id=l.id, status=l.status)
+
+        inc_dev_ids: Set[str] = set(str(d) for d in (incident.affected_device_ids or []) if d)
+        if incident.source_device_id:
+            inc_dev_ids.add(str(incident.source_device_id))
+        for e in linked_events:
+            if e.device_id:
+                inc_dev_ids.add(str(e.device_id))
+            elif e.source_id:
+                inc_dev_ids.add(str(e.source_id))
+
+        inc_vlans: Set[int] = set(int(v) for v in (incident.affected_vlan_ids or []) if isinstance(v, int))
+        for e in linked_events:
+            if e.vlan_id:
+                inc_vlans.add(int(e.vlan_id))
+
+        # Service dependencies touching incident devices or VLANs
+        svc_ids: Set[str] = set()
+        if inc_dev_ids:
+            for dep in db.query(ServiceDependency).filter(
+                ServiceDependency.resource_type == "device",
+                ServiceDependency.resource_id.in_(list(inc_dev_ids)),
+            ).all():
+                svc_ids.add(dep.service_id)
+
+        # Causal symptom families
+        reachability_family = {
+            "VLAN_TRUNK_PRUNED", "VLAN_MISSING", "GATEWAY_UNREACHABLE",
+            "LINK_DOWN", "LINK_FAILURE", "INTERFACE_DOWN", "DEVICE_UNREACHABLE",
+            "HIGH_LATENCY", "PACKET_LOSS",
+        }
+        inc_types = {e.event_type for e in linked_events}
+        is_reachability_inc = bool(inc_types & reachability_family) or any(
+            kw in (incident.title or "").lower() for kw in ("vlan", "trunk", "link", "interface", "gateway", "down")
+        )
+
+        seen_ids: Set[str] = set()
+        related_events: List[Event] = []
+        independent_failures: List[Dict[str, Any]] = []
+
+        # Linked events are always related
+        for e in linked_events:
+            seen_ids.add(e.id)
+            related_events.append(e)
+
+        for e in nearby_events:
+            if e.id in seen_ids:
+                continue
+            seen_ids.add(e.id)
+            e_dev = str(e.device_id or e.source_id or "")
+            e_vlan = e.vlan_id or (e.details or {}).get("vlan_id")
+
+            same_corr = bool(incident.correlation_id and e.correlation_id and e.correlation_id == incident.correlation_id)
+            shared_vlan = bool(e_vlan and int(e_vlan) in inc_vlans and e.event_type in reachability_family and is_reachability_inc)
+            topo_neighbor = False
+            if e_dev and e_dev in G and inc_dev_ids:
+                for d_id in inc_dev_ids:
+                    if d_id in G and nx.has_path(G, e_dev, d_id):
+                        dist = nx.shortest_path_length(G, e_dev, d_id)
+                        if dist <= 1 and (e.event_type in inc_types or (is_reachability_inc and e.event_type in reachability_family)):
+                            topo_neighbor = True
+                            break
+
+            if same_corr or shared_vlan or topo_neighbor:
+                related_events.append(e)
+            else:
+                independent_failures.append({
+                    "event_id": e.id,
+                    "event_type": e.event_type,
+                    "device": e.source_name,
+                    "severity": e.severity,
+                    "timestamp": e.timestamp.isoformat() if e.timestamp else None,
+                    "reason": "No shared correlation ID, affected VLAN, or compatible topological fault chain.",
+                })
+
+        related_events.sort(key=lambda ev: ev.timestamp or ref_time)
+
+        # Timeline reconstruction from events + incident activities
+        timeline: List[Dict[str, Any]] = []
+        for ev in related_events:
+            role = "PRIMARY_TRIGGER" if (incident.root_event_id and ev.id == incident.root_event_id) else "CORRELATED_EVENT"
+            timeline.append({
+                "timestamp": ev.timestamp.isoformat() if ev.timestamp else ref_time.isoformat(),
+                "source": ev.source_name,
+                "event_type": ev.event_type,
+                "device": ev.source_name,
+                "message": ev.message,
+                "role": role,
+            })
+
+        activities = (
+            db.query(IncidentActivity)
+            .filter(IncidentActivity.incident_id == incident.id)
+            .order_by(IncidentActivity.timestamp.asc())
+            .all()
+        )
+        for act in activities:
+            timeline.append({
+                "timestamp": act.timestamp.isoformat() if act.timestamp else ref_time.isoformat(),
+                "source": act.actor,
+                "event_type": act.action,
+                "device": incident.source_device_name or "NOC",
+                "message": f"Incident activity: {act.action}",
+                "role": "LIFECYCLE_ACTIVITY",
+            })
+
+        timeline.sort(key=lambda item: item["timestamp"])
+
+        return {
+            "related_events": related_events,
+            "independent_failures": independent_failures,
+            "timeline": timeline,
+            "affected_service_ids": list(svc_ids),
+        }

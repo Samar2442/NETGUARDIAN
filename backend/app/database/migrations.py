@@ -58,6 +58,18 @@ TABLE_MIGRATIONS = {
         "closed_at": "DATETIME",
         "source": "VARCHAR(30) DEFAULT 'SIMULATION'",
     },
+    "diagnoses": {
+        "status": "VARCHAR(30) DEFAULT 'CONFIRMED'",
+        "secondary_symptoms": "JSON DEFAULT '[]'",
+        "related_event_ids": "JSON DEFAULT '[]'",
+        "independent_failures": "JSON DEFAULT '[]'",
+        "affected_devices": "JSON DEFAULT '[]'",
+        "affected_vlans": "JSON DEFAULT '[]'",
+        "affected_services": "JSON DEFAULT '[]'",
+        "candidate_causes": "JSON DEFAULT '[]'",
+        "timeline": "JSON DEFAULT '[]'",
+        "analysis_timestamp": "DATETIME",
+    },
 }
 
 

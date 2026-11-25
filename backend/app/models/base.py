@@ -200,15 +200,25 @@ class Diagnosis(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     incident_id = Column(String(36), ForeignKey("incidents.id"), unique=True, nullable=False)
     root_cause = Column(String(255), nullable=False)
-    category = Column(String(50), nullable=False)  # vlan_trunk, routing, interface, dhcp, acl, stp, etherchannel, drift
+    category = Column(String(50), nullable=False)  # vlan_trunk, routing, interface, dhcp, acl, stp, etherchannel, drift, link_failure, hardware_resource, insufficient_evidence
+    status = Column(String(30), default="CONFIRMED")  # CONFIRMED, PROBABLE, UNCERTAIN, INSUFFICIENT_EVIDENCE
     confidence = Column(Float, nullable=False)  # 0 to 100 percentage
     severity = Column(String(20), nullable=False)
     explanation = Column(Text, nullable=False)
     supporting_evidence = Column(JSON, default=list)
     contradicting_evidence = Column(JSON, default=list)
+    secondary_symptoms = Column(JSON, default=list)
+    related_event_ids = Column(JSON, default=list)
+    independent_failures = Column(JSON, default=list)
+    affected_devices = Column(JSON, default=list)
+    affected_vlans = Column(JSON, default=list)
+    affected_services = Column(JSON, default=list)
+    candidate_causes = Column(JSON, default=list)
+    timeline = Column(JSON, default=list)
     recommended_action = Column(Text, nullable=False)
     verification_steps = Column(JSON, default=list)
     evidence_graph = Column(JSON, default=dict)
+    analysis_timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     incident = relationship("Incident", back_populates="diagnosis")

@@ -219,14 +219,24 @@ class DiagnosisResponse(BaseModel):
     incident_id: str
     root_cause: str
     category: str
+    status: str = "CONFIRMED"
     confidence: float
     severity: str
     explanation: str
     supporting_evidence: List[str] = []
     contradicting_evidence: List[str] = []
+    secondary_symptoms: List[Dict[str, Any]] = []
+    related_event_ids: List[str] = []
+    independent_failures: List[Dict[str, Any]] = []
+    affected_devices: List[str] = []
+    affected_vlans: List[Any] = []
+    affected_services: List[Dict[str, Any]] = []
+    candidate_causes: List[Dict[str, Any]] = []
+    timeline: List[Dict[str, Any]] = []
     recommended_action: str
     verification_steps: List[str] = []
     evidence_graph: Dict[str, Any] = {}
+    analysis_timestamp: Optional[datetime] = None
     created_at: datetime
 
     class Config:

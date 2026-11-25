@@ -170,4 +170,25 @@ export const api = {
   getSlaOverview: () => request<any>('/sla/overview'),
   getSlaMetrics: () => request<any>('/sla/metrics'),
   getReportJson: (reportType: string) => request<any>(`/reports/${reportType}?format=json`),
+
+  // Milestone 6: Advanced RCA, Predictive Analytics & Intelligent Digital Twin
+  getRcaTimeline: (incidentId: string) => request<any>(`/diagnostics/${incidentId}/timeline`),
+  getRcaCandidates: (incidentId: string) => request<any>(`/diagnostics/${incidentId}/candidates`),
+  getRcaAffectedServices: (incidentId: string) => request<any>(`/diagnostics/${incidentId}/affected-services`),
+  getRcaRelatedEvents: (incidentId: string) => request<any>(`/diagnostics/${incidentId}/related-events`),
+  getAnalyticsOverview: (hours = 24, horizonMinutes = 60) =>
+    request<any>(`/analytics/overview?hours=${hours}&horizon_minutes=${horizonMinutes}`),
+  getAnalyticsAnomalies: (hours = 24, limit = 50) =>
+    request<any>(`/analytics/anomalies?hours=${hours}&limit=${limit}`),
+  getCapacityForecast: (hours = 24, horizonMinutes = 60, limit = 30) =>
+    request<any>(`/analytics/capacity-forecast?hours=${hours}&horizon_minutes=${horizonMinutes}&limit=${limit}`),
+  getAnalyticsTrends: (entityType = 'device', entityId?: string, hours = 24) => {
+    const qs = new URLSearchParams({ entity_type: entityType, hours: String(hours) });
+    if (entityId) qs.set('entity_id', entityId);
+    return request<any>(`/analytics/trends?${qs.toString()}`);
+  },
+  getDigitalTwinState: (targetName?: string) =>
+    request<any>(targetName ? `/simulator/state?target_name=${encodeURIComponent(targetName)}` : '/simulator/state'),
+  compareDigitalTwin: (payload: { scenario_type: string; target_name: string; parameters?: any }) =>
+    request<any>('/simulator/compare', { method: 'POST', body: JSON.stringify(payload) }),
 };

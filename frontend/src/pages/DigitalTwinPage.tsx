@@ -14,20 +14,25 @@ import {
 } from 'lucide-react';
 
 export const DigitalTwinPage: React.FC = () => {
-  const [scenarioType, setScenarioType] = useState('vlan_removed_from_trunk');
-  const [targetDevice, setTargetDevice] = useState('HQ-Access-SW-02');
+  const [scenarioType, setScenarioType] = useState('uplink_failure');
+  const [targetDevice, setTargetDevice] = useState('SW-IT-01');
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
+  const [twinState, setTwinState] = useState<any | null>(null);
   const [simulating, setSimulating] = useState(false);
 
   const runSimulation = async () => {
     try {
       setSimulating(true);
-      const res = await api.runSimulation({
-        scenario_type: scenarioType,
-        target_name: targetDevice,
-        parameters: { vlan_id: 30 },
-      });
+      const [res, state] = await Promise.all([
+        api.runSimulation({
+          scenario_type: scenarioType,
+          target_name: targetDevice,
+          parameters: { vlan_id: 30 },
+        }),
+        api.getDigitalTwinState(targetDevice).catch(() => null),
+      ]);
       setSimulationResult(res);
+      setTwinState(state);
     } catch (e) {
       console.error(e);
     } finally {
@@ -61,24 +66,26 @@ export const DigitalTwinPage: React.FC = () => {
               onChange={(e) => setScenarioType(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-xs font-mono rounded p-2 text-slate-200 focus:outline-none focus:border-cyan-500"
             >
+              <option value="uplink_failure">Campus Switch Uplink Failure</option>
+              <option value="switch_failure">Access / Distribution Switch Down</option>
               <option value="vlan_removed_from_trunk">VLAN Removed from Trunk (Scenario Acceptance Test)</option>
-              <option value="switch_failure">Access Switch Hardware Failure</option>
               <option value="router_failure">Core Router Link Down</option>
-              <option value="interface_shutdown">Interface Administratively Shut Down</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">Target Device</label>
+            <label className="block text-xs font-mono text-slate-400 mb-1">Target Campus Device</label>
             <select
               value={targetDevice}
               onChange={(e) => setTargetDevice(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-xs font-mono rounded p-2 text-slate-200 focus:outline-none focus:border-cyan-500"
             >
+              <option value="SW-IT-01">SW-IT-01 (IT Dept Access Switch)</option>
+              <option value="SW-CSE-01">SW-CSE-01 (CSE Dept Access Switch)</option>
+              <option value="SW-ECE-01">SW-ECE-01 (ECE Dept Access Switch)</option>
+              <option value="SW-DIST-01">SW-DIST-01 (Distribution Switch)</option>
+              <option value="SW-CORE-01">SW-CORE-01 (Campus Core Switch)</option>
               <option value="HQ-Access-SW-02">HQ-Access-SW-02 (Student Lab Switch)</option>
-              <option value="HQ-Access-SW-01">HQ-Access-SW-01 (Admin Access Switch)</option>
-              <option value="HQ-Dist-SW-01">HQ-Dist-SW-01 (Distribution Switch)</option>
-              <option value="HQ-Core-RTR-01">HQ-Core-RTR-01 (Core Edge Router)</option>
             </select>
           </div>
 
@@ -106,10 +113,38 @@ export const DigitalTwinPage: React.FC = () => {
                   <Activity className="w-5 h-5 text-amber-400" />
                   <h3 className="text-sm font-bold text-slate-100">{simulationResult.scenario}</h3>
                 </div>
-                <Badge variant={simulationResult.severity === 'HIGH' ? 'danger' : 'warning'}>
-                  SEVERITY: {simulationResult.severity}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="info">
+                    STATE: {simulationResult.state_classification || 'PREDICTED'}
+                  </Badge>
+                  {twinState?.state_classification && (
+                    <Badge variant={twinState.state_classification === 'RECOVERY_VERIFIED' ? 'success' : 'neutral'}>
+                      LIVE TWIN: {twinState.state_classification}
+                    </Badge>
+                  )}
+                  <Badge variant={simulationResult.severity === 'HIGH' || simulationResult.severity === 'CRITICAL' ? 'danger' : 'warning'}>
+                    SEVERITY: {simulationResult.severity}
+                  </Badge>
+                </div>
               </div>
+
+              {/* Before vs Predicted After State Comparison */}
+              {simulationResult.before_state && simulationResult.after_state && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+                  <div className="bg-slate-950 p-3 rounded border border-slate-800">
+                    <div className="text-[10px] text-slate-400 uppercase mb-1">Before State ({simulationResult.before_state.classification})</div>
+                    <div className="text-emerald-400">
+                      Reachable Nodes: {simulationResult.before_state.reachable_nodes}/{simulationResult.before_state.total_nodes} • Impacted Services: {simulationResult.before_state.impacted_services_count}
+                    </div>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded border border-slate-800">
+                    <div className="text-[10px] text-slate-400 uppercase mb-1">After Failure ({simulationResult.after_state.classification})</div>
+                    <div className="text-rose-400">
+                      Reachable Nodes: {simulationResult.after_state.reachable_nodes}/{simulationResult.after_state.total_nodes} • Impacted Services: {simulationResult.after_state.impacted_services_count}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Blast Radius Numbers */}
               <div className="grid grid-cols-3 gap-3 font-mono text-center">

@@ -225,6 +225,66 @@ export const RcaPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Milestone 6: Candidate Causes, Affected Services & Timeline */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                    <h4 className="text-xs font-mono font-bold uppercase text-cyan-400 mb-2">
+                      Candidate Causes &amp; Status ({(diagnosis as any).status || 'CONFIRMED'})
+                    </h4>
+                    <div className="space-y-2 text-xs font-mono text-slate-300">
+                      {((diagnosis as any).candidate_causes || []).length === 0 ? (
+                        <div className="text-slate-500">No ranked candidates available.</div>
+                      ) : (
+                        ((diagnosis as any).candidate_causes || []).map((c: any, idx: number) => (
+                          <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800">
+                            <div className="flex justify-between">
+                              <span className="font-bold text-slate-200">#{c.rank} {c.category}</span>
+                              <span className="text-cyan-400">{c.confidence}% ({c.status})</span>
+                            </div>
+                            <div className="text-slate-400 mt-1">{c.cause}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                    <h4 className="text-xs font-mono font-bold uppercase text-amber-400 mb-2">
+                      Impacted Campus Services
+                    </h4>
+                    <div className="space-y-2 text-xs font-mono text-slate-300">
+                      {((diagnosis as any).affected_services || []).length === 0 ? (
+                        <div className="text-slate-500">No service dependencies impacted.</div>
+                      ) : (
+                        ((diagnosis as any).affected_services || []).map((s: any, idx: number) => (
+                          <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between">
+                            <span>{s.name}</span>
+                            <span className="text-amber-300">{s.status} ({s.criticality})</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {((diagnosis as any).timeline || []).length > 0 && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                    <h4 className="text-xs font-mono font-bold uppercase text-slate-300 mb-2">
+                      Reconstructed Incident Timeline
+                    </h4>
+                    <div className="space-y-1.5 text-xs font-mono text-slate-300 max-h-48 overflow-y-auto">
+                      {((diagnosis as any).timeline || []).map((t: any, idx: number) => (
+                        <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800/80 flex items-center justify-between gap-2">
+                          <span>
+                            <span className="text-cyan-400">[{t.role}]</span> {t.device}: {t.message}
+                          </span>
+                          <span className="text-[10px] text-slate-500 shrink-0">{t.timestamp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="p-8 text-center text-slate-400 font-mono text-xs">

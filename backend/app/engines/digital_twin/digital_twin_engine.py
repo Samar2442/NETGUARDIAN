@@ -1,7 +1,18 @@
 import networkx as nx
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import Session
-from app.models import Device, NetworkLink, NetworkInterface, VLAN
+from app.models import (
+    Device,
+    DeviceTelemetry,
+    NetworkLink,
+    NetworkInterface,
+    VLAN,
+    CampusService,
+    ServiceDependency,
+    FaultScenario,
+    RemediationProposal,
+)
 
 class DigitalTwinEngine:
     """
@@ -88,6 +99,8 @@ class DigitalTwinEngine:
         nodes = []
         for idx, d in enumerate(devices):
             pos = coord_map.get(d.hostname, {"x": 150 + (idx % 10) * 110, "y": 660 + (idx // 10) * 60})
+            if_up = sum(1 for i in d.interfaces if i.oper_status == "up")
+            if_down = len(d.interfaces) - if_up
             nodes.append({
                 "id": d.id,
                 "type": "ciscoNode",
@@ -104,9 +117,12 @@ class DigitalTwinEngine:
                     "asset_category": d.asset_category,
                     "model": d.model,
                     "status": d.status,
+                    "state_classification": "UNKNOWN" if d.status == "unknown" else "SIMULATED",
                     "cpu": d.cpu_percent,
                     "memory": d.memory_percent,
-                    "interfaces_count": len(d.interfaces)
+                    "interfaces_count": len(d.interfaces),
+                    "interfaces_up": if_up,
+                    "interfaces_down": if_down,
                 }
             })
 
@@ -138,7 +154,57 @@ class DigitalTwinEngine:
                 }
             })
 
-        return {"nodes": nodes, "edges": edges}
+        state_info = DigitalTwinEngine.get_intelligence_state(db)
+        vlans = db.query(VLAN).all()
+        services = db.query(CampusService).all()
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "state_classification": state_info["state_classification"],
+            "health_summary": {
+                "devices_online": sum(1 for d in devices if d.status == "online"),
+                "devices_degraded": sum(1 for d in devices if d.status == "degraded"),
+                "devices_offline": sum(1 for d in devices if d.status == "offline"),
+                "vlans": [{"vlan_id": v.vlan_id, "name": v.name, "department": v.department, "status": v.status} for v in vlans],
+                "services": [{"service_key": s.service_key, "name": s.name, "status": s.operational_status, "criticality": s.criticality} for s in services],
+            },
+        }
+
+    @staticmethod
+    def get_intelligence_state(db: Session, target_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Distinguishes OBSERVED, SIMULATED, PREDICTED, RECOVERY_VERIFIED, and UNKNOWN
+        without ever mixing predicted and observed network states.
+        """
+        telem_count = db.query(DeviceTelemetry).count()
+        active_faults = db.query(FaultScenario).filter(FaultScenario.status == "ACTIVE").count()
+        recovered_faults = db.query(FaultScenario).filter(FaultScenario.status == "RECOVERED").count()
+        resolved_remediations = db.query(RemediationProposal).filter(RemediationProposal.status == "RESOLVED").count()
+
+        target_dev = None
+        if target_name:
+            target_dev = db.query(Device).filter((Device.hostname == target_name) | (Device.id == target_name)).first()
+
+        if telem_count == 0 and (target_dev and target_dev.status == "unknown"):
+            classification = "UNKNOWN"
+        elif active_faults == 0 and (resolved_remediations > 0 or recovered_faults > 0):
+            classification = "RECOVERY_VERIFIED"
+        elif telem_count > 0:
+            classification = "SIMULATED"
+        else:
+            classification = "SIMULATED"
+
+        return {
+            "state_classification": classification,
+            "telemetry_source": "SIMULATION",
+            "telemetry_samples": telem_count,
+            "active_faults": active_faults,
+            "recovered_faults": recovered_faults,
+            "resolved_remediations": resolved_remediations,
+            "target_device": target_dev.hostname if target_dev else None,
+            "target_status": target_dev.status if target_dev else None,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
     @staticmethod
     def simulate_failure(db: Session, scenario_type: str, target_name: str, parameters: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -220,38 +286,94 @@ class DigitalTwinEngine:
             }
             return result_details
 
-        # SCENARIO 2: SWITCH / ROUTER FAILURE
-        elif scenario_type in ["switch_failure", "router_failure", "device_down"]:
+        # SCENARIO 2: SWITCH / ROUTER / LINK / UPLINK FAILURE
+        elif scenario_type in ["switch_failure", "router_failure", "device_down", "link_failure", "uplink_failure"]:
             if target_dev and target_dev.id in G:
                 G_sim = G.copy()
-                G_sim.remove_node(target_dev.id)
+                if scenario_type in ["link_failure", "uplink_failure"]:
+                    # Remove uplink edges from target_dev toward distribution/core
+                    edges_to_drop = [
+                        (u, v) for u, v in G_sim.edges(target_dev.id)
+                        if any(k in (G_sim[u][v].get("link_type") or "") for k in ("trunk", "uplink", "fiber"))
+                    ]
+                    if not edges_to_drop:
+                        edges_to_drop = list(G_sim.edges(target_dev.id))[:1]
+                    G_sim.remove_edges_from(edges_to_drop)
+                else:
+                    G_sim.remove_node(target_dev.id)
 
-                # Check reachability to core router
-                core_rtr = db.query(Device).filter(Device.hostname == "HQ-Core-RTR-01").first()
+                # Check reachability to campus core (SW-CORE-01 or HQ-Core-RTR-01)
+                core_rtr = db.query(Device).filter(Device.hostname.in_(["SW-CORE-01", "HQ-Core-RTR-01"])).first()
                 core_id = core_rtr.id if core_rtr else None
 
-                unreachable = []
+                unreachable_devs = []
                 for node in G_sim.nodes:
-                    if core_id and not nx.has_path(G_sim, node, core_id):
+                    if core_id and node != core_id and not nx.has_path(G_sim, node, core_id):
                         dev_obj = db.query(Device).filter(Device.id == node).first()
                         if dev_obj:
-                            unreachable.append(dev_obj.hostname)
+                            unreachable_devs.append(dev_obj)
 
-                affected_devices = [target_dev.hostname] + unreachable
-                redundant_path_available = len(unreachable) == 0
-                severity = "CRITICAL" if target_dev.device_type in ["router", "l3_switch"] else "HIGH"
+                # Also include student endpoints connected to target_dev or unreachable switches
+                unreachable_ids = {d.id for d in unreachable_devs}
+                if scenario_type not in ["link_failure", "uplink_failure"]:
+                    unreachable_ids.add(target_dev.id)
+                downstream_eps = db.query(Device).filter(
+                    Device.connected_switch_id.in_(list(unreachable_ids))
+                ).all() if unreachable_ids else []
+
+                affected_devices = [target_dev.hostname] + [d.hostname for d in unreachable_devs if d.hostname != target_dev.hostname]
+                affected_endpoints = [d.hostname for d in unreachable_devs if d.asset_category == "student_endpoint" or "PC" in d.hostname]
+                for ep in downstream_eps:
+                    if ep.hostname not in affected_endpoints:
+                        affected_endpoints.append(ep.hostname)
+
+                affected_vlans_set = {f"VLAN {d.vlan_id}" for d in ([target_dev] + unreachable_devs) if d.vlan_id}
+                affected_vlans = sorted(affected_vlans_set) if affected_vlans_set else ["VLAN 10", "VLAN 20", "VLAN 30"]
+
+                # Service impact via ServiceDependency
+                dep_rows = db.query(ServiceDependency).filter(
+                    ServiceDependency.resource_type == "device",
+                    ServiceDependency.resource_id.in_(list(unreachable_ids)),
+                ).all() if unreachable_ids else []
+                svc_ids = {dep.service_id for dep in dep_rows}
+                affected_services = [
+                    s.name for s in db.query(CampusService).filter(CampusService.id.in_(list(svc_ids))).all()
+                ] if svc_ids else ["Campus Network Transit"]
+
+                redundant_path_available = len(unreachable_devs) == 0
+                severity = "CRITICAL" if target_dev.device_type in ["router", "l3_switch", "firewall"] else (
+                    "MEDIUM" if redundant_path_available else "HIGH"
+                )
+                total_nodes = max(1, len(G.nodes))
 
                 return {
-                    "scenario": f"Simulation: {target_dev.hostname} Hardware Failure",
+                    "scenario": f"Simulation: {target_dev.hostname} {scenario_type.replace('_', ' ').title()}",
+                    "state_classification": "PREDICTED",
+                    "telemetry_source": "SIMULATION",
                     "affected_devices_count": len(affected_devices),
                     "affected_devices": affected_devices,
-                    "affected_endpoints": [d for d in affected_devices if "PC" in d],
-                    "affected_vlans": ["VLAN 10", "VLAN 20", "VLAN 30"],
-                    "affected_services": ["Core Routing", "Inter-VLAN SVI Routing"],
+                    "affected_endpoints": affected_endpoints,
+                    "affected_vlans": affected_vlans,
+                    "affected_services": affected_services,
                     "redundant_path_available": redundant_path_available,
                     "severity": severity,
-                    "connectivity_loss_pct": round((len(affected_devices) / len(G.nodes)) * 100, 1),
-                    "explanation": f"Node removal of {target_dev.hostname} partitions the topology graph."
+                    "connectivity_loss_pct": round((len(affected_devices) / total_nodes) * 100, 1),
+                    "before_state": {
+                        "classification": "SIMULATED",
+                        "total_nodes": total_nodes,
+                        "reachable_nodes": total_nodes,
+                        "impacted_services_count": 0,
+                    },
+                    "after_state": {
+                        "classification": "PREDICTED",
+                        "total_nodes": total_nodes,
+                        "reachable_nodes": max(0, total_nodes - len(affected_devices)),
+                        "impacted_services_count": len(affected_services),
+                    },
+                    "explanation": (
+                        f"Predicted impact of {scenario_type} on {target_dev.hostname}: "
+                        f"{'redundant path preserves core reachability' if redundant_path_available else 'topology partition isolates downstream segment'}."
+                    ),
                 }
 
         # DEFAULT FALLBACK SIMULATION
