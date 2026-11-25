@@ -70,13 +70,13 @@ export const TrainingLabPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <GraduationCap className="w-5 h-5 text-indigo-400" />
-            <h1 className="text-lg font-bold text-white">SaturnX CCNA Troubleshooting & Fault-Injection Lab</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">SaturnX CCNA Troubleshooting & Fault-Injection Lab</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Simulate real-world Cisco network outages, observe telemetry, formulate diagnostic hypotheses, and benchmark troubleshooting speed.
           </p>
         </div>
@@ -84,8 +84,8 @@ export const TrainingLabPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Scenario Selection */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
-          <h3 className="text-xs font-mono uppercase text-slate-400 px-1">Curated Lab Scenarios</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
+          <h3 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 px-1">Curated Lab Scenarios</h3>
           <div className="space-y-2">
             {scenarios.map((sc) => (
               <div
@@ -98,7 +98,7 @@ export const TrainingLabPage: React.FC = () => {
                 className={`p-3 rounded-md border font-mono text-xs cursor-pointer transition-colors ${
                   selectedScenario?.id === sc.id
                     ? 'bg-indigo-950/40 border-indigo-700/80 text-indigo-200'
-                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:border-slate-700'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -107,7 +107,7 @@ export const TrainingLabPage: React.FC = () => {
                     {sc.difficulty}
                   </Badge>
                 </div>
-                <div className="text-[10px] text-slate-400">{sc.category}</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400">{sc.category}</div>
               </div>
             ))}
           </div>
@@ -116,26 +116,26 @@ export const TrainingLabPage: React.FC = () => {
         {/* Lab Exercise & Fault Injection Panel */}
         <div className="lg:col-span-2 space-y-5">
           {selectedScenario && (
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
-                  <h2 className="text-base font-bold text-white">{selectedScenario.title}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Target: {selectedScenario.target_device} ({selectedScenario.target_component})</p>
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white">{selectedScenario.title}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Target: {selectedScenario.target_device} ({selectedScenario.target_component})</p>
                 </div>
                 <Badge variant="purple">{selectedScenario.difficulty}</Badge>
               </div>
 
-              <div className="text-xs text-slate-300 leading-relaxed">
+              <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 {selectedScenario.description}
               </div>
 
               {/* Reported Symptoms */}
-              <div className="bg-slate-950 p-4 rounded border border-slate-800">
-                <h4 className="text-xs font-mono uppercase text-slate-400 mb-2 font-bold flex items-center space-x-1.5">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded border border-slate-200 dark:border-slate-800">
+                <h4 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-2 font-bold flex items-center space-x-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <span>Reported Network Symptoms & Telemetry</span>
                 </h4>
-                <ul className="space-y-1.5 text-xs font-mono text-slate-300">
+                <ul className="space-y-1.5 text-xs font-mono text-slate-700 dark:text-slate-300">
                   {selectedScenario.symptoms?.map((s, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
                       <span className="text-amber-500 font-bold">•</span>
@@ -149,7 +149,7 @@ export const TrainingLabPage: React.FC = () => {
               <div className="p-4 rounded-lg bg-indigo-950/20 border border-indigo-900/60 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold font-mono text-indigo-300">Phase 1: Controlled Fault Injection</div>
-                  <div className="text-[11px] text-slate-400">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
                     Triggers the failure condition in the active simulation environment and generates telemetry events.
                   </div>
                 </div>
@@ -173,11 +173,11 @@ export const TrainingLabPage: React.FC = () => {
               )}
 
               {/* Student Troubleshooting Exercise */}
-              <div className="space-y-3 pt-3 border-t border-slate-800">
-                <h4 className="text-xs font-mono uppercase text-slate-300 font-bold">
+              <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <h4 className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300 font-bold">
                   Phase 2: Formulate Your Diagnosis
                 </h4>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Based on the symptoms, explain the probable root cause and which Cisco configuration is defective:
                 </p>
 
@@ -185,7 +185,7 @@ export const TrainingLabPage: React.FC = () => {
                   value={studentDiagnosis}
                   onChange={(e) => setStudentDiagnosis(e.target.value)}
                   placeholder="e.g. VLAN 30 is missing from trunk port GigabitEthernet0/1 on HQ-Access-SW-02..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 h-24"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded p-3 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 h-24"
                 />
 
                 <div className="flex justify-end">
@@ -202,19 +202,19 @@ export const TrainingLabPage: React.FC = () => {
 
               {/* Benchmark Results */}
               {gradingResult && (
-                <div className="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2 font-mono text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span className="text-slate-400">Troubleshooting Accuracy:</span>
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <span className="text-slate-500 dark:text-slate-400">Troubleshooting Accuracy:</span>
                     <span className="text-base font-bold text-emerald-400">{gradingResult.score}%</span>
                   </div>
-                  <div className="text-slate-300">
+                  <div className="text-slate-700 dark:text-slate-300">
                     <span className="text-cyan-400 font-bold">Instructor Feedback: </span>
                     {gradingResult.feedback}
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-1">
-                    Expected Root Cause: <span className="text-slate-200">{selectedScenario.expected_root_cause}</span>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                    Expected Root Cause: <span className="text-slate-800 dark:text-slate-200">{selectedScenario.expected_root_cause}</span>
                   </div>
-                  <div className="text-[11px] text-slate-400">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
                     Cisco Solution: <code className="text-emerald-400">{selectedScenario.recommended_commands}</code>
                   </div>
                 </div>

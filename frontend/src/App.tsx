@@ -4,6 +4,7 @@ import { useAppStore } from './store/useAppStore';
 
 import { MainLayout } from './components/layout/MainLayout';
 import { LoginPage } from './pages/LoginPage';
+import { LandingPage } from './pages/LandingPage';
 import { OverviewDashboard } from './pages/OverviewDashboard';
 import { TopologyPage } from './pages/TopologyPage';
 import { DevicesPage } from './pages/DevicesPage';
@@ -25,11 +26,17 @@ import { ServicesSlaPage } from './pages/ServicesSlaPage';
 import { SecurityOperationsPage } from './pages/SecurityOperationsPage';
 import { NetworkIntegrationPage } from './pages/NetworkIntegrationPage';
 
+// Protected route: redirect to landing if not authenticated
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAppStore();
+  if (!isAuthenticated) return <Navigate to="/landing" replace />;
+  return <>{children}</>;
+};
+
 export const App: React.FC = () => {
-  const { setWsConnected } = useAppStore();
+  const { setWsConnected, isAuthenticated } = useAppStore();
 
   useEffect(() => {
-    // Connect WebSocket for live updates
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     let ws: WebSocket | null = null;
@@ -51,9 +58,19 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes */}
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        
-        <Route path="/" element={<MainLayout />}>
+
+        {/* Root: authenticated → dashboard, unauthenticated → landing */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated
+              ? <MainLayout />
+              : <Navigate to="/landing" replace />
+          }
+        >
           <Route index element={<OverviewDashboard />} />
           <Route path="topology" element={<TopologyPage />} />
           <Route path="campus-inventory" element={<CampusInventoryPage />} />

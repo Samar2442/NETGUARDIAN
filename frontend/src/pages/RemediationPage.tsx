@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { RemediationProposal } from '../types';
 import { Badge } from '../components/common/Badge';
+import { Network3DCard } from '../components/3d/Network3DCard';
 import { useAppStore } from '../store/useAppStore';
 import {
   Wrench,
@@ -20,11 +21,19 @@ export const RemediationPage: React.FC = () => {
   const [proposals, setProposals] = useState<RemediationProposal[]>([]);
   const [selectedProposal, setSelectedProposal] = useState<RemediationProposal | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [devices, setDevices] = useState<any[]>([]);
+  const [links, setLinks] = useState<any[]>([]);
 
   const loadProposals = async () => {
     try {
-      const data = await api.getRemediations();
+      const [data, devs, lks] = await Promise.all([
+        api.getRemediations(),
+        api.getDevices().catch(() => []),
+        api.getLinks().catch(() => []),
+      ]);
       setProposals(data);
+      setDevices(devs || []);
+      setLinks(lks || []);
       if (data.length > 0) {
         setSelectedProposal(data[0]);
       }
@@ -101,28 +110,38 @@ export const RemediationPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <Wrench className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Explainable Self-Healing & Remediation Hub</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Explainable Self-Healing & Remediation Hub</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Controlled remediation workflow: DIAGNOSE → PROPOSE FIX → RISK ASSESSMENT → HUMAN APPROVAL → BACKUP → EXECUTE → VERIFY.
           </p>
         </div>
       </div>
 
+      <Network3DCard
+        title="3D Remediation Target Focus"
+        subtitle={selectedProposal ? `Target device for proposal: ${selectedProposal.title}` : 'Select a remediation proposal to highlight target device'}
+        nodes={devices}
+        links={links}
+        mode="remediation"
+        highlightIds={selectedProposal?.device_id ? [selectedProposal.device_id] : []}
+        heightClass="h-56"
+      />
+
       {proposals.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center font-mono text-xs text-slate-400">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center font-mono text-xs text-slate-500 dark:text-slate-400">
           <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
           No remediation proposals pending review or execution.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Remediation Proposals List */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
-            <h3 className="text-xs font-mono uppercase text-slate-400 px-1">Remediation Proposals</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
+            <h3 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 px-1">Remediation Proposals</h3>
             <div className="space-y-2">
               {proposals.map((p) => (
                 <div
@@ -131,16 +150,16 @@ export const RemediationPage: React.FC = () => {
                   className={`p-3 rounded-md border font-mono text-xs cursor-pointer transition-colors ${
                     selectedProposal?.id === p.id
                       ? 'bg-cyan-950/40 border-cyan-700/80 text-cyan-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <Badge variant={p.status === 'VERIFIED' ? 'success' : p.status === 'APPROVED' ? 'info' : 'warning'}>
                       {p.status}
                     </Badge>
-                    <span className="text-[10px] text-slate-400">{new Date(p.created_at).toLocaleTimeString()}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">{new Date(p.created_at).toLocaleTimeString()}</span>
                   </div>
-                  <div className="font-bold text-slate-100 text-xs truncate mt-1">{p.title}</div>
+                  <div className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate mt-1">{p.title}</div>
                 </div>
               ))}
             </div>
@@ -151,11 +170,11 @@ export const RemediationPage: React.FC = () => {
             {selectedProposal && (
               <>
                 {/* Proposal Overview Card */}
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                     <div>
-                      <h2 className="text-base font-bold text-white">{selectedProposal.title}</h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-white">{selectedProposal.title}</h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Target Interface: {selectedProposal.target_interface || 'N/A'}
                         {selectedProposal.operation ? ` • Operation: ${selectedProposal.operation}` : ''}
                         {selectedProposal.execution_mode ? ` • Mode: ${selectedProposal.execution_mode}` : ''}
@@ -173,40 +192,40 @@ export const RemediationPage: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4 mb-4 text-xs font-mono">
                     <div>
-                      <span className="text-slate-400 block mb-1">Risk Assessment:</span>
+                      <span className="text-slate-500 dark:text-slate-400 block mb-1">Risk Assessment:</span>
                       <Badge variant="success">LOW RISK (INTERFACE CONFIG ONLY)</Badge>
                     </div>
                     <div>
-                      <span className="text-slate-400 block mb-1">Expected Recovery Result:</span>
-                      <span className="text-slate-300">{selectedProposal.expected_result}</span>
+                      <span className="text-slate-500 dark:text-slate-400 block mb-1">Expected Recovery Result:</span>
+                      <span className="text-slate-700 dark:text-slate-300">{selectedProposal.expected_result}</span>
                     </div>
                   </div>
 
                   {/* Proposed Cisco Commands */}
                   <div className="mb-4">
-                    <div className="flex items-center space-x-1.5 text-xs font-mono text-slate-400 mb-1">
+                    <div className="flex items-center space-x-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 mb-1">
                       <FileCode className="w-3.5 h-3.5 text-cyan-400" />
                       <span>Vetted Cisco Remediation Commands:</span>
                     </div>
-                    <pre className="p-3 bg-slate-950 rounded border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
+                    <pre className="p-3 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto">
                       {selectedProposal.proposed_commands}
                     </pre>
                   </div>
 
                   {/* Rollback Plan */}
                   <div className="mb-4">
-                    <div className="flex items-center space-x-1.5 text-xs font-mono text-slate-400 mb-1">
+                    <div className="flex items-center space-x-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 mb-1">
                       <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
                       <span>Automated Rollback Commands (if verification fails):</span>
                     </div>
-                    <pre className="p-2.5 bg-slate-950 rounded border border-slate-800 font-mono text-xs text-slate-400 overflow-x-auto">
+                    <pre className="p-2.5 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs text-slate-500 dark:text-slate-400 overflow-x-auto">
                       {selectedProposal.rollback_commands}
                     </pre>
                   </div>
 
                   {/* Approval Actions */}
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <div className="text-xs font-mono text-slate-400">
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div className="text-xs font-mono text-slate-500 dark:text-slate-400">
                       {selectedProposal.approved_by ? (
                         <span>Approved by: <strong className="text-cyan-400">{selectedProposal.approved_by}</strong></span>
                       ) : (
@@ -262,14 +281,14 @@ export const RemediationPage: React.FC = () => {
 
                 {/* Execution Session & Verification Console */}
                 {selectedProposal.execution_log && (
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-800">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                       <Terminal className="w-4 h-4 text-cyan-400" />
-                      <h3 className="text-xs font-mono uppercase text-slate-300">
+                      <h3 className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300">
                         Cisco IOS Execution & Verification Console
                       </h3>
                     </div>
-                    <pre className="p-4 bg-slate-950 rounded border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto max-h-80 leading-relaxed whitespace-pre-wrap">
+                    <pre className="p-4 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-x-auto max-h-80 leading-relaxed whitespace-pre-wrap">
                       {selectedProposal.execution_log}
                     </pre>
                   </div>

@@ -50,13 +50,13 @@ export const InterfacesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <Cpu className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Interface Telemetry & Switchports</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Interface Telemetry & Switchports</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Layer 2/3 switchport parameters, IEEE 802.1Q trunk allowed lists, error counters, and bandwidth.
           </p>
         </div>
@@ -67,21 +67,21 @@ export const InterfacesPage: React.FC = () => {
             placeholder="Search port or device..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-slate-950 border border-slate-800 text-xs font-mono rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500 w-56"
+            className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-mono rounded px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 w-56"
           />
           <button
             onClick={loadData}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-mono border border-slate-700"
+            className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded text-xs font-mono border border-slate-300 dark:border-slate-700"
           >
             Refresh
           </button>
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-3.5">Device</th>
                 <th className="p-3.5">Interface</th>
@@ -96,39 +96,39 @@ export const InterfacesPage: React.FC = () => {
             <tbody className="divide-y divide-slate-800/60">
               {filtered.map((i) => (
                 <tr key={i.id} className="hover:bg-slate-850/50">
-                  <td className="p-3.5 font-bold text-slate-200">{devices[i.device_id] || 'Unknown'}</td>
+                  <td className="p-3.5 font-bold text-slate-800 dark:text-slate-200">{devices[i.device_id] || 'Unknown'}</td>
                   <td className="p-3.5 text-cyan-400 font-bold">{i.name}</td>
                   <td className="p-3.5">
                     <span className="flex items-center space-x-1.5">
                       <Badge variant={i.admin_status === 'up' ? 'success' : 'danger'}>
                         {i.admin_status.toUpperCase()}
                       </Badge>
-                      <span className="text-slate-400">/</span>
+                      <span className="text-slate-500 dark:text-slate-400">/</span>
                       <Badge variant={i.oper_status === 'up' ? 'success' : 'danger'}>
                         {i.oper_status.toUpperCase()}
                       </Badge>
                     </span>
                   </td>
-                  <td className="p-3.5 uppercase text-slate-300">
+                  <td className="p-3.5 uppercase text-slate-700 dark:text-slate-300">
                     <Badge variant={i.mode === 'trunk' ? 'info' : 'purple'}>{i.mode}</Badge>
                   </td>
-                  <td className="p-3.5 text-slate-300">
+                  <td className="p-3.5 text-slate-700 dark:text-slate-300">
                     {i.mode === 'trunk' ? (
                       <div>
-                        <span className="text-slate-400 text-[10px]">Allowed: </span>
+                        <span className="text-slate-500 dark:text-slate-400 text-[10px]">Allowed: </span>
                         <span className="text-amber-400 font-bold">{i.allowed_vlans || 'none'}</span>
-                        <div className="text-[10px] text-slate-400">Native: {i.native_vlan}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Native: {i.native_vlan}</div>
                       </div>
                     ) : (
                       <span>VLAN {i.access_vlan || 'routed'}</span>
                     )}
                   </td>
-                  <td className="p-3.5 text-slate-400">
+                  <td className="p-3.5 text-slate-500 dark:text-slate-400">
                     {i.speed_mbps} Mbps / {i.duplex}
                   </td>
-                  <td className="p-3.5 text-slate-300">
+                  <td className="p-3.5 text-slate-700 dark:text-slate-300">
                     <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-slate-950 rounded-full h-1.5">
+                      <div className="w-16 bg-slate-50 dark:bg-slate-950 rounded-full h-1.5">
                         <div
                           className="bg-cyan-500 h-1.5 rounded-full"
                           style={{ width: `${Math.min(100, i.bandwidth_utilization_pct || 15)}%` }}

@@ -70,19 +70,19 @@ export const FaultSimulationPage: React.FC = () => {
         <span>SIMULATION MODE — NO REAL NETWORK DEVICE IS MODIFIED</span>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div className="flex items-center space-x-3 mb-4">
           <Flame className="w-5 h-5 text-rose-400" />
-          <h1 className="text-lg font-bold text-white">Controlled Fault Simulation Console</h1>
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white">Controlled Fault Simulation Console</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
           <div>
-            <label className="text-slate-400 block mb-1">Target Campus Device</label>
+            <label className="text-slate-500 dark:text-slate-400 block mb-1">Target Campus Device</label>
             <select
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-slate-800 dark:text-slate-200"
             >
               {devices.map((d) => (
                 <option key={d.id} value={d.hostname}>{d.hostname} ({d.device_type})</option>
@@ -90,11 +90,11 @@ export const FaultSimulationPage: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="text-slate-400 block mb-1">Fault Scenario Type</label>
+            <label className="text-slate-500 dark:text-slate-400 block mb-1">Fault Scenario Type</label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-slate-800 dark:text-slate-200"
             >
               {scenarios.map((s) => (
                 <option key={s.type} value={s.type}>{s.type} — {s.description}</option>
@@ -114,12 +114,12 @@ export const FaultSimulationPage: React.FC = () => {
         {error && <div className="mt-3 text-xs font-mono text-rose-400">{error}</div>}
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-800 text-xs font-mono uppercase text-slate-400">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-800 text-xs font-mono uppercase text-slate-500 dark:text-slate-400">
           Simulated Fault Scenarios
         </div>
         <table className="w-full text-left text-xs font-mono">
-          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+          <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="px-4 py-2.5">Scenario</th>
               <th className="px-4 py-2.5">Type</th>
@@ -129,7 +129,7 @@ export const FaultSimulationPage: React.FC = () => {
               <th className="px-4 py-2.5 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-200">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
             {faults.map((f) => (
               <tr key={f.id}>
                 <td className="px-4 py-2.5 font-bold">{f.scenario_name}</td>

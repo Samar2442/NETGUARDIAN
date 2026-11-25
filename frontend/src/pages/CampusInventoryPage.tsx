@@ -67,13 +67,13 @@ export const CampusInventoryPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <Users className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Campus Inventory & Identity Management</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Campus Inventory & Identity Management</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Synthetic campus personnel records (250 Students, 16 Faculty, 6 IT Personnel) bound to 3-tier network endpoints.
           </p>
         </div>
@@ -92,7 +92,7 @@ export const CampusInventoryPage: React.FC = () => {
               className={`px-3 py-1.5 rounded text-xs font-mono border transition-colors ${
                 tab === key
                   ? 'bg-cyan-600/20 border-cyan-600 text-cyan-300 font-bold'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
               }`}
             >
               {label}
@@ -117,17 +117,17 @@ export const CampusInventoryPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-              <h2 className="text-xs font-mono uppercase text-slate-400 mb-3">Department Distribution</h2>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+              <h2 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-3">Department Distribution</h2>
               <table className="w-full text-xs font-mono text-left">
-                <thead className="text-slate-400 border-b border-slate-800">
+                <thead className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="py-2">Department</th>
                     <th className="py-2 text-right">Students</th>
                     <th className="py-2 text-right">Faculty</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
                   {['CSE', 'IT', 'ECE'].map((d) => (
                     <tr key={d}>
                       <td className="py-2 font-bold text-cyan-400">{d}</td>
@@ -140,28 +140,28 @@ export const CampusInventoryPage: React.FC = () => {
             </div>
 
             {validation && (
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xs font-mono uppercase text-slate-400">Inventory Validation Status</h2>
+                  <h2 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400">Inventory Validation Status</h2>
                   <Badge variant={validation.valid ? 'success' : 'danger'}>
                     {validation.valid ? 'VALIDATED' : `${validation.critical_errors} ERRORS`}
                   </Badge>
                 </div>
-                <div className="space-y-2 text-xs font-mono text-slate-300">
+                <div className="space-y-2 text-xs font-mono text-slate-700 dark:text-slate-300">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Checks Passed:</span>
+                    <span className="text-slate-500 dark:text-slate-400">Checks Passed:</span>
                     <span className="text-emerald-400 font-bold">{validation.passed_checks} / {validation.total_checks}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Unassigned Students:</span>
+                    <span className="text-slate-500 dark:text-slate-400">Unassigned Students:</span>
                     <span>{overview.unassigned_students}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Invalid Associations:</span>
+                    <span className="text-slate-500 dark:text-slate-400">Invalid Associations:</span>
                     <span>{overview.invalid_associations}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Inventory Health:</span>
+                    <span className="text-slate-500 dark:text-slate-400">Inventory Health:</span>
                     <Badge variant={overview.inventory_health === 'HEALTHY' ? 'success' : 'warning'}>
                       {overview.inventory_health}
                     </Badge>
@@ -174,23 +174,23 @@ export const CampusInventoryPage: React.FC = () => {
       )}
 
       {(tab === 'students' || tab === 'assignments') && (
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-lg p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
           <div className="flex items-center space-x-2">
             {tab === 'students' && (
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-2.5" />
                 <input
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                   placeholder="Search ID or name..."
-                  className="pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-600"
+                  className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-600"
                 />
               </div>
             )}
             <select
               value={deptFilter}
               onChange={(e) => { setDeptFilter(e.target.value); setPage(0); }}
-              className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-slate-200"
+              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-xs font-mono text-slate-800 dark:text-slate-200"
             >
               <option value="">All Departments</option>
               <option value="CSE">CSE (VLAN 10)</option>
@@ -198,12 +198,12 @@ export const CampusInventoryPage: React.FC = () => {
               <option value="ECE">ECE (VLAN 30)</option>
             </select>
           </div>
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400">
-            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="p-1.5 bg-slate-950 border border-slate-800 rounded disabled:opacity-40">
+          <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="p-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded disabled:opacity-40">
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <span>Page {page + 1}</span>
-            <button onClick={() => setPage((p) => p + 1)} className="p-1.5 bg-slate-950 border border-slate-800 rounded">
+            <button onClick={() => setPage((p) => p + 1)} className="p-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded">
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -212,9 +212,9 @@ export const CampusInventoryPage: React.FC = () => {
 
       {tab === 'students' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+              <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="px-3 py-2.5">Student ID</th>
                   <th className="px-3 py-2.5">Name</th>
@@ -225,7 +225,7 @@ export const CampusInventoryPage: React.FC = () => {
                   <th className="px-3 py-2.5">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
                 {students.map((s) => (
                   <tr
                     key={s.id}
@@ -245,22 +245,22 @@ export const CampusInventoryPage: React.FC = () => {
             </table>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 font-mono text-xs h-fit">
-            <h3 className="text-slate-400 uppercase mb-3 border-b border-slate-800 pb-2">Student Network Assignment</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 font-mono text-xs h-fit">
+            <h3 className="text-slate-500 dark:text-slate-400 uppercase mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">Student Network Assignment</h3>
             {netError && <div className="text-amber-400">{netError}</div>}
             {!selectedStudentNet && !netError && (
               <div className="text-slate-500">Select a student row to inspect their endpoint, switch port, and VLAN mapping.</div>
             )}
             {selectedStudentNet && (
-              <div className="space-y-2 text-slate-200">
-                <div className="flex justify-between"><span className="text-slate-400">Student:</span><span className="font-bold text-cyan-400">{selectedStudentNet.student_id}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Endpoint:</span><span>{selectedStudentNet.endpoint_hostname}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">IPv4 Address:</span><span className="text-cyan-300">{selectedStudentNet.ip_address}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">MAC Address:</span><span>{selectedStudentNet.mac_address}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Access Switch:</span><span className="text-emerald-400">{selectedStudentNet.connected_switch}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Switch Port:</span><span>{selectedStudentNet.connected_interface}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">VLAN / Dept:</span><span>VLAN {selectedStudentNet.vlan_id} ({selectedStudentNet.department})</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Status ({selectedStudentNet.status_source}):</span><Badge variant="success">{selectedStudentNet.operational_status}</Badge></div>
+              <div className="space-y-2 text-slate-800 dark:text-slate-200">
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Student:</span><span className="font-bold text-cyan-400">{selectedStudentNet.student_id}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Endpoint:</span><span>{selectedStudentNet.endpoint_hostname}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">IPv4 Address:</span><span className="text-cyan-300">{selectedStudentNet.ip_address}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">MAC Address:</span><span>{selectedStudentNet.mac_address}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Access Switch:</span><span className="text-emerald-400">{selectedStudentNet.connected_switch}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Switch Port:</span><span>{selectedStudentNet.connected_interface}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">VLAN / Dept:</span><span>VLAN {selectedStudentNet.vlan_id} ({selectedStudentNet.department})</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Status ({selectedStudentNet.status_source}):</span><Badge variant="success">{selectedStudentNet.operational_status}</Badge></div>
               </div>
             )}
           </div>
@@ -268,9 +268,9 @@ export const CampusInventoryPage: React.FC = () => {
       )}
 
       {tab === 'faculty' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-4 py-2.5">Faculty ID</th>
                 <th className="px-4 py-2.5">Name</th>
@@ -280,7 +280,7 @@ export const CampusInventoryPage: React.FC = () => {
                 <th className="px-4 py-2.5">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
               {faculty.map((f) => (
                 <tr key={f.id}>
                   <td className="px-4 py-2.5 font-bold text-cyan-400">{f.faculty_id}</td>
@@ -297,9 +297,9 @@ export const CampusInventoryPage: React.FC = () => {
       )}
 
       {tab === 'it' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-4 py-2.5">Employee ID</th>
                 <th className="px-4 py-2.5">Name</th>
@@ -309,7 +309,7 @@ export const CampusInventoryPage: React.FC = () => {
                 <th className="px-4 py-2.5">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
               {itStaff.map((e) => (
                 <tr key={e.id}>
                   <td className="px-4 py-2.5 font-bold text-cyan-400">{e.employee_id}</td>
@@ -326,9 +326,9 @@ export const CampusInventoryPage: React.FC = () => {
       )}
 
       {tab === 'assignments' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-4 py-2.5">Student</th>
                 <th className="px-4 py-2.5">Endpoint</th>
@@ -339,7 +339,7 @@ export const CampusInventoryPage: React.FC = () => {
                 <th className="px-4 py-2.5">Assignment</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
               {assignments.map((a) => (
                 <tr key={a.student_id}>
                   <td className="px-4 py-2.5"><span className="text-cyan-400 font-bold">{a.student_id}</span> ({a.student_name})</td>

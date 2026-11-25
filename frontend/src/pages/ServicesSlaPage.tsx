@@ -52,14 +52,14 @@ export const ServicesSlaPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <ShieldCheck className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Campus Service Intelligence, SLA & Management Reporting</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Campus Service Intelligence, SLA & Management Reporting</h1>
             <Badge variant="info">SIMULATION / DEMO SLA</Badge>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Dependency-aware service health across 7 campus services, MTTD/MTTA/MTTR metrics, and CSV/PDF management reports.
           </p>
         </div>
@@ -75,9 +75,9 @@ export const ServicesSlaPage: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-4 py-2.5">Campus Service</th>
                 <th className="px-4 py-2.5">Scope</th>
@@ -87,7 +87,7 @@ export const ServicesSlaPage: React.FC = () => {
                 <th className="px-4 py-2.5">Compliance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
               {services.map((s) => (
                 <tr key={s.id} onClick={() => inspectDeps(s)} className="hover:bg-slate-800/50 cursor-pointer">
                   <td className="px-4 py-2.5 font-bold text-cyan-400">{s.name}</td>
@@ -108,8 +108,8 @@ export const ServicesSlaPage: React.FC = () => {
           </table>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 font-mono text-xs space-y-3 h-fit">
-          <div className="text-slate-400 uppercase border-b border-slate-800 pb-2 flex items-center space-x-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 font-mono text-xs space-y-3 h-fit">
+          <div className="text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center space-x-2">
             <Layers className="w-4 h-4 text-cyan-400" />
             <span>Dependencies {selectedName ? `— ${selectedName}` : ''}</span>
           </div>
@@ -118,7 +118,7 @@ export const ServicesSlaPage: React.FC = () => {
           ) : (
             <div className="space-y-1.5 max-h-64 overflow-y-auto">
               {deps.map((d) => (
-                <div key={d.id} className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 flex justify-between">
+                <div key={d.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 flex justify-between">
                   <span>{d.resource_name}</span>
                   <Badge variant={d.dependency_role === 'REDUNDANT_PATH' ? 'info' : 'neutral'}>{d.dependency_role}</Badge>
                 </div>
@@ -129,8 +129,8 @@ export const ServicesSlaPage: React.FC = () => {
       </div>
 
       {/* Management Reporting Export Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-        <h2 className="text-xs font-mono uppercase text-slate-400 mb-3">Management Reports (CSV / PDF Exports)</h2>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+        <h2 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-3">Management Reports (CSV / PDF Exports)</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 font-mono text-xs">
           {[
             ['daily_incidents', 'Daily Incident Summary'],
@@ -140,13 +140,13 @@ export const ServicesSlaPage: React.FC = () => {
             ['critical_incidents', 'Critical Incident Report'],
             ['engineer_workload', 'Engineer Workload Summary'],
           ].map(([key, label]) => (
-            <div key={key} className="bg-slate-950 border border-slate-800 rounded p-3 flex items-center justify-between">
-              <span className="text-slate-200">{label}</span>
+            <div key={key} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded p-3 flex items-center justify-between">
+              <span className="text-slate-800 dark:text-slate-200">{label}</span>
               <div className="flex space-x-1.5">
-                <button onClick={() => downloadReport(key, 'csv')} className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded flex items-center space-x-1">
+                <button onClick={() => downloadReport(key, 'csv')} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded flex items-center space-x-1">
                   <Download className="w-3 h-3" /><span>CSV</span>
                 </button>
-                <button onClick={() => downloadReport(key, 'pdf')} className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded flex items-center space-x-1">
+                <button onClick={() => downloadReport(key, 'pdf')} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-amber-300 rounded flex items-center space-x-1">
                   <Download className="w-3 h-3" /><span>PDF</span>
                 </button>
               </div>

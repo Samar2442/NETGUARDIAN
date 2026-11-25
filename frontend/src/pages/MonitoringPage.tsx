@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Badge } from '../components/common/Badge';
 import { StatCard } from '../components/common/StatCard';
+import { Network3DCard } from '../components/3d/Network3DCard';
 import { Activity, Play, Server, Cpu, Layers, Bell, Check } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -20,15 +21,21 @@ export const MonitoringPage: React.FC = () => {
   const [sevFilter, setSevFilter] = useState('');
   const [rangeMinutes, setRangeMinutes] = useState(60);
   const [polling, setPolling] = useState(false);
+  const [sceneDevices, setSceneDevices] = useState<any[]>([]);
+  const [sceneLinks, setSceneLinks] = useState<any[]>([]);
 
   const loadAll = async () => {
     try {
-      const [ov, hh] = await Promise.all([
+      const [ov, hh, devs, lks] = await Promise.all([
         api.getTelemetryOverview().catch(() => null),
         api.getTelemetryHealthHistory(24).catch(() => ({ history: [] })),
+        api.getDevices().catch(() => []),
+        api.getLinks().catch(() => []),
       ]);
       if (ov) setOverview(ov);
       setHealthHist(hh.history || []);
+      setSceneDevices(devs || []);
+      setSceneLinks(lks || []);
     } catch (e) {
       console.error(e);
     }
@@ -71,14 +78,14 @@ export const MonitoringPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <Activity className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">NOC Live Telemetry & Event Monitoring</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">NOC Live Telemetry & Event Monitoring</h1>
             <Badge variant="info">SOURCE: SIMULATION</Badge>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Time-varying simulated telemetry across campus devices, interfaces, and departmental VLANs.
             {overview?.timestamp ? ` Last update: ${new Date(overview.timestamp).toLocaleTimeString()}` : ''}
           </p>
@@ -96,7 +103,7 @@ export const MonitoringPage: React.FC = () => {
               key={k}
               onClick={() => setTab(k)}
               className={`px-3 py-1.5 rounded text-xs font-mono border ${
-                tab === k ? 'bg-cyan-600/20 border-cyan-600 text-cyan-300 font-bold' : 'bg-slate-950 border-slate-800 text-slate-400'
+                tab === k ? 'bg-cyan-600/20 border-cyan-600 text-cyan-300 font-bold' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400'
               }`}
             >
               {label}
@@ -122,13 +129,13 @@ export const MonitoringPage: React.FC = () => {
             <StatCard title="Active Incidents" value={overview.active_incidents} subtitle={`Critical Alerts: ${overview.critical_alerts} | Faults: ${overview.active_faults}`} icon={Bell} color={overview.active_incidents > 0 ? 'rose' : 'emerald'} />
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-mono uppercase text-slate-400">Network Health & Availability Trend (SIMULATION)</h2>
+              <h2 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400">Network Health & Availability Trend (SIMULATION)</h2>
               <select
                 value={rangeMinutes}
                 onChange={(e) => setRangeMinutes(Number(e.target.value))}
-                className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-300"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-700 dark:text-slate-300"
               >
                 <option value={15}>15 Minutes</option>
                 <option value={60}>1 Hour</option>
@@ -149,24 +156,33 @@ export const MonitoringPage: React.FC = () => {
               </ResponsiveContainer>
             </div>
           </div>
+
+          <Network3DCard
+            title="3D Device Health & Load State"
+            subtitle="Real-time simulated CPU/status visualization across campus tiers"
+            nodes={sceneDevices}
+            links={sceneLinks}
+            mode="health"
+            heightClass="h-64"
+          />
         </div>
       )}
 
       {tab === 'devices' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-            <div className="p-3 border-b border-slate-800 flex justify-between items-center">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+            <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Filter by hostname..."
-                className="bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-200 w-64"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-800 dark:text-slate-200 w-64"
               />
-              <span className="text-[11px] font-mono text-slate-400">Click row for telemetry history</span>
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">Click row for telemetry history</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-3 py-2">Hostname</th>
                     <th className="px-3 py-2">Type</th>
@@ -176,7 +192,7 @@ export const MonitoringPage: React.FC = () => {
                     <th className="px-3 py-2">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
                   {devices.map((d) => (
                     <tr key={d.device_id} onClick={() => handleInspectDevice(d.device_id)} className="hover:bg-slate-800/50 cursor-pointer">
                       <td className="px-3 py-2 font-bold text-cyan-400">{d.hostname}</td>
@@ -194,8 +210,8 @@ export const MonitoringPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 font-mono text-xs h-fit">
-            <h3 className="text-slate-400 uppercase mb-3">Device History (SIMULATION)</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 font-mono text-xs h-fit">
+            <h3 className="text-slate-500 dark:text-slate-400 uppercase mb-3">Device History (SIMULATION)</h3>
             {!selectedHistory ? (
               <div className="text-slate-500">Select a device to inspect CPU and memory history.</div>
             ) : (
@@ -219,9 +235,9 @@ export const MonitoringPage: React.FC = () => {
       )}
 
       {tab === 'interfaces' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-3 py-2.5">Device</th>
                 <th className="px-3 py-2.5">Interface</th>
@@ -232,7 +248,7 @@ export const MonitoringPage: React.FC = () => {
                 <th className="px-3 py-2.5">Duplex</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
               {interfaces.map((i) => (
                 <tr key={i.interface_id}>
                   <td className="px-3 py-2 font-bold text-cyan-400">{i.device_hostname}</td>
@@ -252,27 +268,27 @@ export const MonitoringPage: React.FC = () => {
       {tab === 'vlans' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {vlans.map((v) => (
-            <div key={v.vlan_id} className="bg-slate-900 border border-slate-800 rounded-lg p-5 font-mono text-xs space-y-2">
+            <div key={v.vlan_id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 font-mono text-xs space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-base font-bold text-cyan-400">VLAN {v.vlan_id} — {v.department}</span>
                 <Badge variant={v.vlan_health_pct >= 95 ? 'success' : 'warning'}>{v.vlan_health_pct}%</Badge>
               </div>
-              <div className="flex justify-between"><span className="text-slate-400">Subnet:</span><span>{v.subnet}</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Endpoints (On/Off):</span><span>{v.online_endpoints} / {v.offline_endpoints} (Total {v.total_endpoints})</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Avg Latency:</span><span>{v.avg_latency_ms} ms</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Avg Packet Loss:</span><span>{v.avg_packet_loss_pct}%</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Active Incidents:</span><span className={v.active_incidents > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400'}>{v.active_incidents}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Subnet:</span><span>{v.subnet}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Endpoints (On/Off):</span><span>{v.online_endpoints} / {v.offline_endpoints} (Total {v.total_endpoints})</span></div>
+              <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Avg Latency:</span><span>{v.avg_latency_ms} ms</span></div>
+              <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Avg Packet Loss:</span><span>{v.avg_packet_loss_pct}%</span></div>
+              <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Active Incidents:</span><span className={v.active_incidents > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400'}>{v.active_incidents}</span></div>
             </div>
           ))}
         </div>
       )}
 
       {tab === 'events' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-          <div className="p-3 border-b border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+          <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-2 items-center justify-between">
             <div className="flex gap-2">
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-200" />
-              <select value={sevFilter} onChange={(e) => setSevFilter(e.target.value)} className="bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-200">
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-800 dark:text-slate-200" />
+              <select value={sevFilter} onChange={(e) => setSevFilter(e.target.value)} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-slate-800 dark:text-slate-200">
                 <option value="">All Severities</option>
                 <option value="CRITICAL">CRITICAL</option>
                 <option value="MAJOR">MAJOR</option>
@@ -282,21 +298,21 @@ export const MonitoringPage: React.FC = () => {
             </div>
             <Badge variant="info">SIMULATION EVENTS: {events.length}</Badge>
           </div>
-          <div className="divide-y divide-slate-800 max-h-[500px] overflow-y-auto">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[500px] overflow-y-auto">
             {events.map((ev) => (
               <div key={ev.id} className="p-3 font-mono text-xs flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <span className="text-slate-400 text-[10px]">{new Date(ev.timestamp).toLocaleTimeString()}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[10px]">{new Date(ev.timestamp).toLocaleTimeString()}</span>
                     <Badge variant={ev.severity === 'CRITICAL' || ev.severity === 'high' ? 'danger' : ev.severity === 'INFO' ? 'success' : 'warning'}>{ev.severity}</Badge>
-                    <span className="font-bold text-slate-100">{ev.source_name}</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100">{ev.source_name}</span>
                   </div>
-                  <div className="text-slate-300">{ev.message}</div>
+                  <div className="text-slate-700 dark:text-slate-300">{ev.message}</div>
                 </div>
                 {!ev.acknowledged && (
                   <button
                     onClick={() => api.acknowledgeEvent(ev.id).then(() => api.getFilteredEvents({ limit: 60 }).then(setEvents))}
-                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-cyan-300 flex items-center space-x-1"
+                    className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-cyan-300 flex items-center space-x-1"
                   >
                     <Check className="w-3 h-3" /><span>Ack</span>
                   </button>

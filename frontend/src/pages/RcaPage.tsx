@@ -67,13 +67,13 @@ export const RcaPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <SearchCode className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Root-Cause Analysis & Evidence Engine</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Root-Cause Analysis & Evidence Engine</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Evidence-based diagnostic conclusions with weighted confidence, supporting facts, contradicting facts, and recommended Cisco CLI fixes.
           </p>
         </div>
@@ -90,15 +90,15 @@ export const RcaPage: React.FC = () => {
       </div>
 
       {incidents.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center font-mono text-xs text-slate-400">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center font-mono text-xs text-slate-500 dark:text-slate-400">
           <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
           No active incidents requiring root-cause analysis.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Incident Selector List */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
-            <h3 className="text-xs font-mono uppercase text-slate-400 px-1">Correlated Incidents</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
+            <h3 className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 px-1">Correlated Incidents</h3>
             <div className="space-y-2">
               {incidents.map((inc) => (
                 <div
@@ -107,7 +107,7 @@ export const RcaPage: React.FC = () => {
                   className={`p-3 rounded-md border font-mono text-xs cursor-pointer transition-colors ${
                     selectedIncident?.id === inc.id
                       ? 'bg-cyan-950/40 border-cyan-700/80 text-cyan-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -116,9 +116,9 @@ export const RcaPage: React.FC = () => {
                       {inc.severity}
                     </Badge>
                   </div>
-                  <div className="text-[11px] text-slate-300 truncate">{inc.title}</div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Status: <span className="text-slate-200">{inc.status}</span>
+                  <div className="text-[11px] text-slate-700 dark:text-slate-300 truncate">{inc.title}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                    Status: <span className="text-slate-800 dark:text-slate-200">{inc.status}</span>
                   </div>
                 </div>
               ))}
@@ -130,32 +130,32 @@ export const RcaPage: React.FC = () => {
             {diagnosis ? (
               <>
                 {/* Probable Root Cause Banner */}
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-                  <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
+                  <div className="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div className="flex items-center space-x-2">
                       <ShieldAlert className="w-5 h-5 text-rose-400" />
-                      <span className="text-xs font-mono uppercase text-slate-400 tracking-wider">
+                      <span className="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                         Probable Root Cause Diagnosis
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono text-slate-400">Diagnostic Confidence:</span>
+                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Diagnostic Confidence:</span>
                       <span className="text-base font-mono font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
                         {diagnosis.confidence}%
                       </span>
                     </div>
                   </div>
 
-                  <h2 className="text-lg font-bold font-mono text-slate-100 mb-2">
+                  <h2 className="text-lg font-bold font-mono text-slate-900 dark:text-slate-100 mb-2">
                     {diagnosis.root_cause}
                   </h2>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans mb-4">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans mb-4">
                     {diagnosis.explanation}
                   </p>
 
-                  <div className="bg-slate-950 p-3 rounded border border-slate-800 text-xs font-mono">
+                  <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded border border-slate-200 dark:border-slate-800 text-xs font-mono">
                     <span className="text-cyan-400 font-bold">RECOMMENDED CISCO ACTION: </span>
-                    <span className="text-slate-200">{diagnosis.recommended_action}</span>
+                    <span className="text-slate-800 dark:text-slate-200">{diagnosis.recommended_action}</span>
                   </div>
                 </div>
 
@@ -169,14 +169,14 @@ export const RcaPage: React.FC = () => {
                 {/* Evidence Lists (Supporting & Contradicting) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Supporting Evidence */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-800">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <h4 className="text-xs font-mono font-bold uppercase text-emerald-400">
                         Supporting Evidence
                       </h4>
                     </div>
-                    <ul className="space-y-2 text-xs font-mono text-slate-300">
+                    <ul className="space-y-2 text-xs font-mono text-slate-700 dark:text-slate-300">
                       {diagnosis.supporting_evidence.map((ev, idx) => (
                         <li key={idx} className="flex items-start space-x-2">
                           <span className="text-emerald-500 font-bold">•</span>
@@ -187,14 +187,14 @@ export const RcaPage: React.FC = () => {
                   </div>
 
                   {/* Contradicting Evidence */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-800">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                       <h4 className="text-xs font-mono font-bold uppercase text-amber-400">
                         Contradicting / Ruled-Out Factors
                       </h4>
                     </div>
-                    <ul className="space-y-2 text-xs font-mono text-slate-300">
+                    <ul className="space-y-2 text-xs font-mono text-slate-700 dark:text-slate-300">
                       {diagnosis.contradicting_evidence.length === 0 ? (
                         <li className="text-slate-500">None detected.</li>
                       ) : (
@@ -210,16 +210,16 @@ export const RcaPage: React.FC = () => {
                 </div>
 
                 {/* Verification Procedure */}
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-800">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                     <FileText className="w-4 h-4 text-cyan-400" />
                     <h4 className="text-xs font-mono font-bold uppercase text-cyan-400">
                       Standard Verification Procedure
                     </h4>
                   </div>
-                  <div className="space-y-1.5 font-mono text-xs text-slate-300">
+                  <div className="space-y-1.5 font-mono text-xs text-slate-700 dark:text-slate-300">
                     {diagnosis.verification_steps.map((st, idx) => (
-                      <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800/80">
+                      <div key={idx} className="p-2 rounded bg-slate-50 dark:bg-slate-950 border border-slate-800/80">
                         {st}
                       </div>
                     ))}
@@ -228,37 +228,37 @@ export const RcaPage: React.FC = () => {
 
                 {/* Milestone 6: Candidate Causes, Affected Services & Timeline */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                     <h4 className="text-xs font-mono font-bold uppercase text-cyan-400 mb-2">
                       Candidate Causes &amp; Status ({(diagnosis as any).status || 'CONFIRMED'})
                     </h4>
-                    <div className="space-y-2 text-xs font-mono text-slate-300">
+                    <div className="space-y-2 text-xs font-mono text-slate-700 dark:text-slate-300">
                       {((diagnosis as any).candidate_causes || []).length === 0 ? (
                         <div className="text-slate-500">No ranked candidates available.</div>
                       ) : (
                         ((diagnosis as any).candidate_causes || []).map((c: any, idx: number) => (
-                          <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800">
+                          <div key={idx} className="p-2 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                             <div className="flex justify-between">
-                              <span className="font-bold text-slate-200">#{c.rank} {c.category}</span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200">#{c.rank} {c.category}</span>
                               <span className="text-cyan-400">{c.confidence}% ({c.status})</span>
                             </div>
-                            <div className="text-slate-400 mt-1">{c.cause}</div>
+                            <div className="text-slate-500 dark:text-slate-400 mt-1">{c.cause}</div>
                           </div>
                         ))
                       )}
                     </div>
                   </div>
 
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                     <h4 className="text-xs font-mono font-bold uppercase text-amber-400 mb-2">
                       Impacted Campus Services
                     </h4>
-                    <div className="space-y-2 text-xs font-mono text-slate-300">
+                    <div className="space-y-2 text-xs font-mono text-slate-700 dark:text-slate-300">
                       {((diagnosis as any).affected_services || []).length === 0 ? (
                         <div className="text-slate-500">No service dependencies impacted.</div>
                       ) : (
                         ((diagnosis as any).affected_services || []).map((s: any, idx: number) => (
-                          <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between">
+                          <div key={idx} className="p-2 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex justify-between">
                             <span>{s.name}</span>
                             <span className="text-amber-300">{s.status} ({s.criticality})</span>
                           </div>
@@ -269,13 +269,13 @@ export const RcaPage: React.FC = () => {
                 </div>
 
                 {((diagnosis as any).timeline || []).length > 0 && (
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                    <h4 className="text-xs font-mono font-bold uppercase text-slate-300 mb-2">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                    <h4 className="text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
                       Reconstructed Incident Timeline
                     </h4>
-                    <div className="space-y-1.5 text-xs font-mono text-slate-300 max-h-48 overflow-y-auto">
+                    <div className="space-y-1.5 text-xs font-mono text-slate-700 dark:text-slate-300 max-h-48 overflow-y-auto">
                       {((diagnosis as any).timeline || []).map((t: any, idx: number) => (
-                        <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800/80 flex items-center justify-between gap-2">
+                        <div key={idx} className="p-2 rounded bg-slate-50 dark:bg-slate-950 border border-slate-800/80 flex items-center justify-between gap-2">
                           <span>
                             <span className="text-cyan-400">[{t.role}]</span> {t.device}: {t.message}
                           </span>
@@ -287,7 +287,7 @@ export const RcaPage: React.FC = () => {
                 )}
               </>
             ) : (
-              <div className="p-8 text-center text-slate-400 font-mono text-xs">
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400 font-mono text-xs">
                 Select an incident to view root-cause analysis.
               </div>
             )}

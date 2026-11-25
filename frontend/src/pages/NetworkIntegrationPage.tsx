@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { StatCard } from '../components/common/StatCard';
 import { Badge } from '../components/common/Badge';
+import { Network3DCard } from '../components/3d/Network3DCard';
 import { Plug, Server, Activity, Radio, RefreshCw, AlertCircle } from 'lucide-react';
 
 export const NetworkIntegrationPage: React.FC = () => {
@@ -48,13 +49,13 @@ export const NetworkIntegrationPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5">
         <div>
           <div className="flex items-center space-x-3">
             <Plug className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-lg font-bold text-white">Device Connectivity, Real-Time Telemetry &amp; Virtual Labs</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Device Connectivity, Real-Time Telemetry &amp; Virtual Labs</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Read-only Cisco SSH/SNMPv3 profiles, Syslog ingestion, and GNS3/EVE-NG virtual lab synchronization.
           </p>
         </div>
@@ -64,21 +65,29 @@ export const NetworkIntegrationPage: React.FC = () => {
       </div>
 
       {statusMsg && (
-        <div className="p-3 rounded bg-slate-900 border border-cyan-700/50 text-xs font-mono text-cyan-300 flex items-center gap-2">
+        <div className="p-3 rounded bg-white dark:bg-slate-900 border border-cyan-700/50 text-xs font-mono text-cyan-300 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{statusMsg}</span>
         </div>
       )}
 
+      <Network3DCard
+        title="3D Integration & Virtual Lab Connectivity"
+        subtitle="Real-time device connectivity and virtual lab synchronization state"
+        nodes={devices}
+        mode="integration"
+        heightClass="h-56"
+      />
+
       {validationReport?.integrations && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-          <div className="text-xs font-mono uppercase text-slate-300 font-bold mb-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+          <div className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300 font-bold mb-2">
             Integration Validation Status (Honest Live State)
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
             {Object.entries(validationReport.integrations).map(([key, info]: [string, any]) => (
-              <div key={key} className="p-2.5 rounded bg-slate-950 border border-slate-800">
-                <div className="text-slate-400">{key}</div>
+              <div key={key} className="p-2.5 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <div className="text-slate-500 dark:text-slate-400">{key}</div>
                 <div className="mt-1">
                   <Badge variant={info.status === 'CONNECTED' || info.status === 'VALIDATED' ? 'success' : 'neutral'}>
                     {info.status}
@@ -122,8 +131,8 @@ export const NetworkIntegrationPage: React.FC = () => {
       </div>
 
       {/* Connection Profiles & Capabilities */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3">
-        <h2 className="text-xs font-mono uppercase text-slate-300 font-bold">Device Connection Profiles &amp; Capabilities</h2>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 space-y-3">
+        <h2 className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300 font-bold">Device Connection Profiles &amp; Capabilities</h2>
         {profiles.length === 0 ? (
           <div className="text-xs font-mono text-slate-500 py-6 text-center">
             No external LAB/PRODUCTION profiles configured. Campus SIMULATION remains active independently.
@@ -131,7 +140,7 @@ export const NetworkIntegrationPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs font-mono text-left">
-              <thead className="text-[10px] text-slate-400 uppercase border-b border-slate-800">
+              <thead className="text-[10px] text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-2 pr-2">Device</th>
                   <th className="py-2 pr-2">IP</th>
@@ -143,7 +152,7 @@ export const NetworkIntegrationPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-800/70">
                 {profiles.map((p) => (
-                  <tr key={p.id} className="text-slate-300">
+                  <tr key={p.id} className="text-slate-700 dark:text-slate-300">
                     <td className="py-2 pr-2 font-semibold">{p.device_name}</td>
                     <td className="py-2 pr-2">{p.management_ip}:{p.port}</td>
                     <td className="py-2 pr-2"><Badge variant="info">{p.environment}</Badge></td>
@@ -154,7 +163,7 @@ export const NetworkIntegrationPage: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="py-2 flex gap-2">
-                      <button onClick={() => handleTest(p.id)} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">
+                      <button onClick={() => handleTest(p.id)} className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-800 dark:text-slate-200">
                         Test
                       </button>
                     </td>
@@ -168,17 +177,17 @@ export const NetworkIntegrationPage: React.FC = () => {
 
       {/* Virtual Lab Servers & Syslog Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3">
-          <h3 className="text-xs font-mono uppercase text-slate-300 font-bold">GNS3 &amp; EVE-NG Virtual Lab Servers</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 space-y-3">
+          <h3 className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300 font-bold">GNS3 &amp; EVE-NG Virtual Lab Servers</h3>
           {labServers.length === 0 ? (
             <div className="text-xs font-mono text-slate-500 py-6 text-center">No GNS3 or EVE-NG servers registered.</div>
           ) : (
             <div className="space-y-2 text-xs font-mono">
               {labServers.map((s) => (
-                <div key={s.id} className="p-3 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div key={s.id} className="p-3 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-slate-200">{s.name} ({s.lab_type})</div>
-                    <div className="text-slate-400">{s.base_url} • Status: {s.connection_status}</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200">{s.name} ({s.lab_type})</div>
+                    <div className="text-slate-500 dark:text-slate-400">{s.base_url} • Status: {s.connection_status}</div>
                     {s.last_error && <div className="text-rose-400 text-[11px]">{s.last_error}</div>}
                   </div>
                   <button
@@ -194,15 +203,15 @@ export const NetworkIntegrationPage: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3">
-          <h3 className="text-xs font-mono uppercase text-slate-300 font-bold">Syslog &amp; Device Event Feed</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 space-y-3">
+          <h3 className="text-xs font-mono uppercase text-slate-700 dark:text-slate-300 font-bold">Syslog &amp; Device Event Feed</h3>
           <div className="space-y-1.5 max-h-60 overflow-y-auto text-xs font-mono">
             {syslogEvents.length === 0 ? (
               <div className="text-slate-500 text-center py-6">No syslog events ingested.</div>
             ) : (
               syslogEvents.map((e) => (
-                <div key={e.id} className="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between gap-2">
-                  <span className="text-slate-300 truncate">{e.source_name}: {e.message}</span>
+                <div key={e.id} className="p-2 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex justify-between gap-2">
+                  <span className="text-slate-700 dark:text-slate-300 truncate">{e.source_name}: {e.message}</span>
                   <Badge variant="neutral">{e.source}</Badge>
                 </div>
               ))
