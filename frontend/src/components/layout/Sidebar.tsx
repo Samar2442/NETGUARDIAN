@@ -20,6 +20,7 @@ import {
   Flame,
   ShieldCheck,
   ShieldAlert,
+  Plug,
 } from 'lucide-react';
 
 const navItems = [
@@ -35,6 +36,7 @@ const navItems = [
   { name: 'Incidents', path: '/incidents', icon: AlertOctagon },
   { name: 'Services & SLA', path: '/services', icon: ShieldCheck },
   { name: 'Security Ops', path: '/security', icon: ShieldAlert },
+  { name: 'Integrations & Labs', path: '/integrations', icon: Plug },
   { name: 'Root-Cause Analysis', path: '/diagnostics', icon: SearchCode },
   { name: 'Digital Twin', path: '/simulator', icon: Box },
   { name: 'Remediation', path: '/remediation', icon: Wrench },

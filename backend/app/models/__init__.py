@@ -30,6 +30,9 @@ from app.models.base import (
     SecurityDetectionRule,
     SecurityDetection,
     SecurityEvidence,
+    CredentialVault,
+    DeviceConnectionProfile,
+    VirtualLabServer,
     generate_uuid
 )
 
@@ -65,5 +68,8 @@ __all__ = [
     "SecurityDetectionRule",
     "SecurityDetection",
     "SecurityEvidence",
+    "CredentialVault",
+    "DeviceConnectionProfile",
+    "VirtualLabServer",
     "generate_uuid"
 ]

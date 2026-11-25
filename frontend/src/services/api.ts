@@ -232,4 +232,21 @@ export const api = {
     request<any>(`/security/incidents/${incidentId}/evidence`, { method: 'POST', body: JSON.stringify(payload) }),
   getSecurityIncidentRecommendations: (incidentId: string) =>
     request<any>(`/security/incidents/${incidentId}/recommendations`),
+
+  // Milestone 8: Real Device Integration, Telemetry & Virtual Labs
+  getIntegrationProfiles: (environment?: string) =>
+    request<any>(environment ? `/integrations/profiles?environment=${encodeURIComponent(environment)}` : '/integrations/profiles'),
+  testIntegrationProfile: (profileId: string) =>
+    request<any>(`/integrations/profiles/${profileId}/test`, { method: 'POST' }),
+  discoverProfileCapabilities: (profileId: string) =>
+    request<any>(`/integrations/profiles/${profileId}/capabilities`, { method: 'POST' }),
+  getRealTelemetryHealth: () => request<any>('/integrations/telemetry/health'),
+  pollRealTelemetry: (profileId: string) =>
+    request<any>(`/integrations/telemetry/poll/${profileId}`, { method: 'POST' }),
+  getSyslogEvents: (limit = 30) => request<any[]>(`/integrations/syslog/events?limit=${limit}`),
+  getLabServers: () => request<any[]>('/integrations/labs/servers'),
+  discoverLabServer: (serverId: string) =>
+    request<any>(`/integrations/labs/servers/${serverId}/discover`, { method: 'POST' }),
+  syncLabServer: (serverId: string, targetId: string) =>
+    request<any>(`/integrations/labs/servers/${serverId}/sync`, { method: 'POST', body: JSON.stringify({ target_id: targetId }) }),
 };

@@ -82,6 +82,19 @@ class Settings(BaseSettings):
     ESCALATION_MAJOR_MINUTES: int = 15
     ESCALATION_MINOR_MINUTES: int = 30
 
+    # Milestone 8: Real Device Integration & Virtual Lab Settings
+    PRODUCTION_INTEGRATION_ENABLED: bool = False
+    LAB_INTEGRATION_ENABLED: bool = True
+    INTEGRATION_ENCRYPTION_KEY: Optional[str] = None
+    APPROVED_INTEGRATION_CIDRS: List[str] = Field(
+        default_factory=lambda: [
+            "10.0.0.0/8",
+            "172.16.0.0/12",
+            "192.168.0.0/16",
+            "127.0.0.1/32",
+        ]
+    )
+
     # CORS – list of allowed frontend origins
     BACKEND_CORS_ORIGINS: List[str] = Field(
         default_factory=lambda: [

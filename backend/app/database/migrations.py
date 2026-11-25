@@ -23,6 +23,18 @@ TABLE_MIGRATIONS = {
         "connected_interface": "VARCHAR(50)",
         "asset_category": "VARCHAR(40) DEFAULT 'infrastructure'",
         "layer": "VARCHAR(30)",
+        "environment": "VARCHAR(20) DEFAULT 'SIMULATION'",
+        "external_source_id": "VARCHAR(100)",
+    },
+    "device_telemetry": {
+        "telemetry_source": "VARCHAR(20) DEFAULT 'SIMULATION'",
+        "collection_method": "VARCHAR(30) DEFAULT 'SIMULATION'",
+        "data_quality": "VARCHAR(20) DEFAULT 'VALID'",
+    },
+    "interface_telemetry": {
+        "telemetry_source": "VARCHAR(20) DEFAULT 'SIMULATION'",
+        "collection_method": "VARCHAR(30) DEFAULT 'SIMULATION'",
+        "data_quality": "VARCHAR(20) DEFAULT 'VALID'",
     },
     "vlans": {
         "department": "VARCHAR(100)",

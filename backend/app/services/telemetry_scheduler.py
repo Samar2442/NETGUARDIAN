@@ -40,7 +40,9 @@ class TelemetryScheduler:
                         db = SessionLocal()
                         try:
                             from app.services.incident_lifecycle import IncidentLifecycleService
+                            from app.services.real_device_telemetry import RealDeviceTelemetryService
                             res = TelemetryEngine.collect_once(db)
+                            RealDeviceTelemetryService.poll_all_approved(db)
                             IncidentLifecycleService.evaluate_escalations(db)
                             return res
                         finally:

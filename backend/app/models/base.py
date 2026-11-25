@@ -38,6 +38,8 @@ class Device(Base):
     connected_interface = Column(String(50), nullable=True)
     asset_category = Column(String(40), default="infrastructure", index=True)
     layer = Column(String(30), nullable=True)
+    environment = Column(String(20), default="SIMULATION", index=True)
+    external_source_id = Column(String(100), nullable=True, index=True)
     status = Column(String(20), default="online", index=True)  # online, degraded, offline
     monitoring_status = Column(String(20), default="active")  # active, paused, error
     uptime_seconds = Column(Integer, default=864000)
@@ -422,6 +424,8 @@ class DeviceTelemetry(Base):
     packet_loss_pct = Column(Float, nullable=False, default=0.0)
     status = Column(String(20), nullable=False, default="online")
     telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
+    collection_method = Column(String(30), nullable=False, default="SIMULATION")
+    data_quality = Column(String(20), nullable=False, default="VALID")
     simulation_run_id = Column(String(64), nullable=True, index=True)
 
 
@@ -441,6 +445,9 @@ class InterfaceTelemetry(Base):
     input_discards = Column(Integer, nullable=False, default=0)
     output_discards = Column(Integer, nullable=False, default=0)
     operational_status = Column(String(20), nullable=False, default="up")
+    telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
+    collection_method = Column(String(30), nullable=False, default="SIMULATION")
+    data_quality = Column(String(20), nullable=False, default="VALID")
     duplex = Column(String(10), nullable=False, default="full")
     telemetry_source = Column(String(20), nullable=False, default="SIMULATION")
     simulation_run_id = Column(String(64), nullable=True, index=True)
@@ -592,3 +599,64 @@ class SecurityEvidence(Base):
     collection_method = Column(String(50), nullable=False, default="AUTOMATED_SIMULATION")
     data_classification = Column(String(30), nullable=False, default="SIMULATION")
     collected_by = Column(String(50), nullable=False, default="system")
+
+
+class CredentialVault(Base):
+    """Encrypted credential store for authorized LAB/PRODUCTION device connections."""
+    __tablename__ = "credential_vault"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    credential_ref = Column(String(64), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    username = Column(String(100), nullable=False)
+    encrypted_password = Column(Text, nullable=False)
+    encrypted_secret = Column(Text, nullable=True)  # enable secret or SNMPv3 priv key
+    auth_protocol = Column(String(20), nullable=True)  # SHA, MD5, SHA256
+    priv_protocol = Column(String(20), nullable=True)  # AES128, DES
+    created_by = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class DeviceConnectionProfile(Base):
+    """Explicitly authorized connection profile for LAB or PRODUCTION network devices."""
+    __tablename__ = "device_connection_profiles"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    device_id = Column(String(36), ForeignKey("devices.id"), nullable=True, index=True)
+    device_name = Column(String(100), nullable=False, index=True)
+    management_ip = Column(String(45), nullable=False)
+    device_vendor = Column(String(50), nullable=False, default="Cisco")
+    device_platform = Column(String(50), nullable=False, default="cisco_ios")
+    device_model = Column(String(80), nullable=True)
+    os_version = Column(String(80), nullable=True)
+    protocol = Column(String(20), nullable=False, default="SSH")  # SSH, SNMPV3, NETCONF, RESTCONF
+    port = Column(Integer, nullable=False, default=22)
+    credential_ref = Column(String(64), nullable=False)
+    environment = Column(String(20), nullable=False, default="LAB", index=True)  # SIMULATION, LAB, PRODUCTION
+    timeout_seconds = Column(Integer, nullable=False, default=10)
+    max_retries = Column(Integer, nullable=False, default=2)
+    ssh_host_key_fingerprint = Column(String(128), nullable=True)
+    host_key_verified = Column(Boolean, nullable=False, default=False)
+    connection_status = Column(String(30), nullable=False, default="DISCONNECTED")
+    last_successful_connection = Column(DateTime, nullable=True)
+    last_connection_error = Column(String(255), nullable=True)
+    capabilities = Column(JSON, default=dict)
+    is_approved = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class VirtualLabServer(Base):
+    """Configured GNS3 or EVE-NG virtual laboratory server."""
+    __tablename__ = "virtual_lab_servers"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    name = Column(String(100), nullable=False)
+    lab_type = Column(String(20), nullable=False)  # GNS3, EVE_NG
+    base_url = Column(String(255), nullable=False)
+    credential_ref = Column(String(64), nullable=True)
+    connection_status = Column(String(30), nullable=False, default="DISCONNECTED")
+    last_sync_at = Column(DateTime, nullable=True)
+    last_error = Column(String(255), nullable=True)
+    discovered_summary = Column(JSON, default=dict)
+    created_by = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

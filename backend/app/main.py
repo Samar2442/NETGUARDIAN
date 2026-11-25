@@ -35,6 +35,7 @@ from app.api.v1.services import router as services_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.security import router as security_router
+from app.api.v1.integrations import router as integrations_router
 from app.services.telemetry_scheduler import telemetry_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -128,6 +129,7 @@ app.include_router(services_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR)
 app.include_router(security_router, prefix=settings.API_V1_STR)
+app.include_router(integrations_router, prefix=settings.API_V1_STR)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
